@@ -224,6 +224,7 @@ export function MissionsClient({
                            </DropdownMenuPortal>
                         </DropdownMenuSub>
                         )}
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" /> Annuler
                         </DropdownMenuItem>
