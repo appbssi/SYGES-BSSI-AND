@@ -134,6 +134,7 @@ export function AgentsClient({
                 <TableHead>Agent</TableHead>
                 <TableHead>Matricule</TableHead>
                 <TableHead>Grade</TableHead>
+                <TableHead>Contact</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -146,6 +147,7 @@ export function AgentsClient({
                   </TableCell>
                   <TableCell>{agent.registrationNumber}</TableCell>
                   <TableCell>{agent.rank}</TableCell>
+                  <TableCell>{agent.contact}</TableCell>
                   <TableCell>
                     <Badge
                       variant={agent.status === "Disponible" ? "secondary" : "destructive"}
@@ -175,7 +177,7 @@ export function AgentsClient({
               ))}
                {filteredAgents.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.
                     </TableCell>
                 </TableRow>
