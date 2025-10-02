@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteMissionAction, saveMissionAssignments } from "@/lib/actions";
+import { deleteMissionAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,6 +47,7 @@ import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
+import { updateDoc, doc } from "firebase/firestore";
 
 type MissionStatus = "Active" | "À venir" | "Terminée" | "Chargement...";
 type MissionWithAgents = Mission & { agents: Agent[], status: MissionStatus };
@@ -161,7 +162,9 @@ export function MissionsClient() {
         newAgentIds = [...mission.agentIds, agentId];
       }
       
-      await saveMissionAssignments([{ id: missionId, agentIds: newAgentIds }], []);
+      const missionRef = doc(firestore, "missions", missionId);
+      await updateDoc(missionRef, { agentIds: newAgentIds });
+      
       toast({
           title: "Assignation Mise à Jour",
           description: "La liste des agents pour la mission a été mise à jour."

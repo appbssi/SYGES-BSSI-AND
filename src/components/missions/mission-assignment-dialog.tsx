@@ -16,7 +16,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Agent, Mission } from "@/lib/types";
 import { BrainCircuit, Loader2, Save } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
-import { saveMissionAssignments } from "@/lib/actions";
 import {
   Select,
   SelectContent,
@@ -25,6 +24,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "../ui/label";
+import { useFirestore } from "@/firebase";
+import { doc, updateDoc } from "firebase/firestore";
+import { revalidatePath } from "next/cache";
 
 interface MissionAssignmentDialogProps {
   isOpen: boolean;
@@ -40,13 +42,17 @@ type MissionAssignmentState = {
 
 export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }: MissionAssignmentDialogProps) {
   const { toast } = useToast();
+  const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
   const [assignments, setAssignments] = useState<MissionAssignmentState>({});
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if(isOpen) {
+      setAssignments({});
+    }
+  }, [isOpen]);
   
   const getMissionStatus = (mission: Mission) => {
     if (!isClient) return "Chargement...";
@@ -104,23 +110,30 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     };
     setIsSaving(true);
 
-    const missionsToUpdate: Partial<Mission>[] = Object.entries(assignments).map(([missionId, agentId]) => {
-        const mission = missions.find(m => m.id === missionId);
-        if (!mission) return null;
+    try {
+        const updatePromises = Object.entries(assignments).map(([missionId, agentId]) => {
+            const missionRef = doc(firestore, "missions", missionId);
+            const mission = missions.find(m => m.id === missionId);
+            if(!mission) return Promise.resolve();
+
+            const newAgentIds = Array.from(new Set([...mission.agentIds, agentId]));
+            return updateDoc(missionRef, { agentIds: newAgentIds });
+        });
+
+        await Promise.all(updatePromises);
         
-        const newAgentIds = Array.from(new Set([...mission.agentIds, agentId]));
-        
-        return {
-            id: missionId,
-            agentIds: newAgentIds,
-        };
-    }).filter((m): m is Partial<Mission> => m !== null);
-    
-    await saveMissionAssignments(missionsToUpdate, []);
-    setIsSaving(false);
-    setIsOpen(false);
-    setAssignments({});
-    toast({ title: 'Assignations Enregistrées', description: 'Le tableau des missions a été mis à jour.' });
+        toast({ title: 'Assignations Enregistrées', description: 'Le tableau des missions a été mis à jour.' });
+        setIsOpen(false);
+    } catch (error) {
+        console.error("Error saving assignments: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Une erreur est survenue lors de l'enregistrement."
+        });
+    } finally {
+        setIsSaving(false);
+    }
   };
   
   return (
