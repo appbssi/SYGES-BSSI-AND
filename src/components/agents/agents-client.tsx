@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,9 +44,14 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
 
-type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" };
+type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
 export function AgentsClient() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
@@ -64,7 +69,7 @@ export function AgentsClient() {
   const agents = agentsData || [];
   const missions = missionsData || [];
 
-  const getAgentStatus = (agentId: string) => {
+  const getAgentStatus = (agentId: string): "Disponible" | "Occupé" => {
     const now = new Date();
     const hasActiveMission = missions.some(
       (m) =>
@@ -75,10 +80,18 @@ export function AgentsClient() {
     return hasActiveMission ? "Occupé" : "Disponible";
   };
 
-  const agentsWithStatus: AgentWithStatus[] = useMemo(() => agents.map((agent) => ({
-    ...agent,
-    status: getAgentStatus(agent.id),
-  })), [agents, missions]);
+  const agentsWithStatus: AgentWithStatus[] = useMemo(() => {
+    if (!isClient) {
+      return agents.map(agent => ({
+        ...agent,
+        status: "Chargement..."
+      }));
+    }
+    return agents.map((agent) => ({
+      ...agent,
+      status: getAgentStatus(agent.id),
+    }));
+  }, [agents, missions, isClient]);
   
   const filteredAgents = agentsWithStatus.filter(agent => {
     if (statusFilter === 'all') return true;
@@ -115,7 +128,7 @@ export function AgentsClient() {
   const handleExportCsv = () => {
     const dataToExport = filteredAgents.map(({ id, status, ...rest }) => ({
       ...rest,
-      status: status === "Disponible" ? "Disponible" : "Occupé",
+      status: status,
     }));
     exportToCsv(dataToExport, "ebrigade_agents.csv");
   };
@@ -131,6 +144,8 @@ export function AgentsClient() {
     ]);
     exportToPdf("Liste des Agents", headers, body, "ebrigade_agents.pdf");
   };
+
+  const isLoading = agentsLoading || missionsLoading;
 
   return (
     <>
@@ -176,7 +191,7 @@ export function AgentsClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(agentsLoading || missionsLoading) ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     Chargement des données...
@@ -192,12 +207,16 @@ export function AgentsClient() {
                     <TableCell>{agent.rank}</TableCell>
                     <TableCell>{agent.contact}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={agent.status === "Disponible" ? "secondary" : "destructive"}
-                        className={agent.status === "Disponible" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
-                      >
-                        {agent.status}
-                      </Badge>
+                      {agent.status === "Chargement..." ? (
+                        <span className="text-muted-foreground text-xs">Chargement...</span>
+                      ) : (
+                        <Badge
+                          variant={agent.status === "Disponible" ? "secondary" : "destructive"}
+                          className={agent.status === "Disponible" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
+                        >
+                          {agent.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

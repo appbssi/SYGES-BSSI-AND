@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,9 +48,15 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
 
-type MissionWithAgents = Mission & { agents: Agent[], status: "Active" | "À venir" | "Terminée" };
+type MissionStatus = "Active" | "À venir" | "Terminée" | "Chargement...";
+type MissionWithAgents = Mission & { agents: Agent[], status: MissionStatus };
 
 export function MissionsClient() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
@@ -100,13 +106,15 @@ export function MissionsClient() {
   };
 
 
-  const missionsWithAgents: MissionWithAgents[] = useMemo(() => initialMissions.map(
-    (mission) => ({
-      ...mission,
-      agents: mission.agentIds.map(id => initialAgents.find((a) => a.id === id)).filter(Boolean) as Agent[],
-      status: getMissionStatus(mission)
-    })
-  ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()), [initialMissions, initialAgents]);
+  const missionsWithAgents: MissionWithAgents[] = useMemo(() => {
+    return initialMissions.map(
+      (mission) => ({
+        ...mission,
+        agents: mission.agentIds.map(id => initialAgents.find((a) => a.id === id)).filter(Boolean) as Agent[],
+        status: isClient ? getMissionStatus(mission) : "Chargement..."
+      })
+    ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+  }, [initialMissions, initialAgents, isClient]);
   
   const handleExportCsv = () => {
     const dataToExport = missionsWithAgents.map(m => ({
@@ -252,16 +260,20 @@ export function MissionsClient() {
                     {format(new Date(mission.endDate), "dd/MM/yy", { locale: fr })}
                   </TableCell>
                   <TableCell>
-                     <Badge
-                        variant={mission.status === 'Active' ? 'destructive' : 'secondary'}
-                        className={
-                            mission.status === 'Active' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200' : 
-                            mission.status === 'Terminée' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
-                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200'
-                        }
-                     >
-                        {mission.status}
-                     </Badge>
+                    {mission.status === "Chargement..." ? (
+                      <span className="text-muted-foreground text-xs">Chargement...</span>
+                    ) : (
+                      <Badge
+                          variant={mission.status === 'Active' ? 'destructive' : 'secondary'}
+                          className={
+                              mission.status === 'Active' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200' : 
+                              mission.status === 'Terminée' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
+                              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200'
+                          }
+                      >
+                          {mission.status}
+                      </Badge>
+                    )}
                   </TableCell>
                    <TableCell className="text-right">
                     <DropdownMenu>
