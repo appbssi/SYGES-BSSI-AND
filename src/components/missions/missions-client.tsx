@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -13,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, Download, MoreHorizontal, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Download, MoreHorizontal, Trash2, UserPlus, Users } from "lucide-react";
 import { format } from "date-fns";
 import { exportToCsv } from "@/lib/utils";
 import {
@@ -40,6 +41,8 @@ import {
 import { deleteMissionAction, saveMissionAssignments } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 type MissionWithAgents = Omit<Mission, "agentIds"> & { agents: (Omit<Agent, 'avatar'> | null)[], status: "Active" | "À venir" | "Terminée" };
 
@@ -179,9 +182,26 @@ export function MissionsClient({
                   <TableCell className="font-medium">{mission.name}</TableCell>
                   <TableCell>
                     {mission.agents.length > 0 ? (
-                      <div className="flex flex-wrap gap-x-2 gap-y-1">
-                        {mission.agents.map(agent => agent && <Badge variant="secondary" key={agent.id}>{agent.name}</Badge>)}
-                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Badge variant="outline" className="cursor-pointer">
+                            <Users className="mr-2 h-3 w-3" />
+                            {mission.agents.length} agent(s)
+                          </Badge>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto">
+                          <div className="space-y-2">
+                            <h4 className="font-medium leading-none">Agents Assignés</h4>
+                            <div className="grid gap-2">
+                              {mission.agents.map(agent => agent && (
+                                <div key={agent.id} className="flex items-center gap-2">
+                                  <p>{agent.name} ({agent.rank})</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     ) : (
                       <span className="text-muted-foreground">Non assignée</span>
                     )}
