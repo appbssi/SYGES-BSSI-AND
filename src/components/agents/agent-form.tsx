@@ -22,6 +22,7 @@ import { addDoc, getDocs, query, where } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 interface AgentFormProps {
   isOpen: boolean;
@@ -41,6 +42,9 @@ const agentSchema = z.object({
 type FormValues = z.infer<typeof agentSchema>;
 
 export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
+  const { user } = useAuth();
+  const isViewer = user?.role === 'viewer';
+  
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
@@ -187,7 +191,7 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" disabled={isSaving || isViewer}>
               {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enregistrement...</> : 'Ajouter l\'Agent'}
             </Button>
           </DialogFooter>

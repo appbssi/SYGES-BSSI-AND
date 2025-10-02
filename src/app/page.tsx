@@ -4,19 +4,20 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { useUser } from "@/firebase";
+import { useAuth } from "@/context/auth-context";
+
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!loading && !user) {
       router.replace("/login");
     }
-  }, [user, isUserLoading, router]);
+  }, [user, loading, router]);
   
-  if (isUserLoading || !user) {
+  if (loading || !user) {
     return <div className="flex h-screen items-center justify-center">Chargement...</div>;
   }
 

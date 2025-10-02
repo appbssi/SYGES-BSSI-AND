@@ -48,11 +48,15 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection, missionDoc } from "@/firebase/firestore/missions";
 import { updateDoc, doc, deleteDoc } from "firebase/firestore";
+import { useAuth } from "@/context/auth-context";
 
 type MissionStatus = "Active" | "À venir" | "Terminée" | "Chargement...";
 type MissionWithAgents = Mission & { agents: Agent[], status: MissionStatus };
 
 export function MissionsClient() {
+  const { user } = useAuth();
+  const isViewer = user?.role === 'viewer';
+  
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
@@ -158,6 +162,14 @@ export function MissionsClient() {
   };
 
   const handleToggleAgent = async (missionId: string, agentId: string) => {
+      if (isViewer) {
+          toast({
+              variant: "destructive",
+              title: "Accès refusé",
+              description: "Vous n'avez pas les droits pour effectuer cette action."
+          });
+          return;
+      }
       const mission = initialMissions.find(m => m.id === missionId);
       if (!mission) return;
 
@@ -206,7 +218,7 @@ export function MissionsClient() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Journal de Mission</h2>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(true)}><UserPlus className="mr-2" /> Assigner</Button>
+            <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(true)} disabled={isViewer}><UserPlus className="mr-2" /> Assigner</Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -222,7 +234,7 @@ export function MissionsClient() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={handleAddNew}><Plus className="mr-2" /> Créer une Mission</Button>
+            <Button onClick={handleAddNew} disabled={isViewer}><Plus className="mr-2" /> Créer une Mission</Button>
         </div>
       </div>
       <Card>
@@ -297,14 +309,14 @@ export function MissionsClient() {
                    <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" disabled={isViewer}>
                           <MoreHorizontal />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         {mission.status !== 'Terminée' && (
                         <DropdownMenuSub>
-                           <DropdownMenuSubTrigger>
+                           <DropdownMenuSubTrigger disabled={isViewer}>
                                <UserPlus className="mr-2 h-4 w-4" />
                                Assigner des agents
                            </DropdownMenuSubTrigger>
@@ -315,7 +327,7 @@ export function MissionsClient() {
                                         key={agent.id} 
                                         onSelect={(e) => e.preventDefault()} 
                                         onClick={() => handleToggleAgent(mission.id, agent.id)}
-                                        disabled={!isAgentAvailableForMission(agent, mission, initialMissions) && !mission.agentIds.includes(agent.id)}
+                                        disabled={(!isAgentAvailableForMission(agent, mission, initialMissions) && !mission.agentIds.includes(agent.id)) || isViewer}
                                       >
                                          <div className="w-4 mr-2">
                                             {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
@@ -328,13 +340,13 @@ export function MissionsClient() {
                         </DropdownMenuSub>
                         )}
                         {mission.status !== 'Terminée' && (
-                           <DropdownMenuItem onClick={() => handleExtend(mission)}>
+                           <DropdownMenuItem onClick={() => handleExtend(mission)} disabled={isViewer}>
                              <CalendarClock className="mr-2 h-4 w-4" />
                              Prolonger
                            </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive">
+                        <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive" disabled={isViewer}>
                           <Trash2 className="mr-2 h-4 w-4" /> Annuler
                         </DropdownMenuItem>
                       </DropdownMenuContent>

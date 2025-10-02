@@ -27,6 +27,7 @@ import { Label } from "../ui/label";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { optimizeMissionAssignment } from "@/ai/flows/optimize-mission-assignment";
+import { useAuth } from "@/context/auth-context";
 
 interface MissionAssignmentDialogProps {
   isOpen: boolean;
@@ -41,6 +42,9 @@ type MissionAssignmentState = {
 
 
 export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }: MissionAssignmentDialogProps) {
+  const { user } = useAuth();
+  const isViewer = user?.role === 'viewer';
+  
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
@@ -185,7 +189,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
           <DialogTitle>Assignation Manuelle des Missions</DialogTitle>
           <DialogDescription className="flex justify-between items-center">
             <span>Assignez des agents disponibles aux missions non-assignées.</span>
-             <Button variant="outline" size="sm" onClick={handleOptimize} disabled={isOptimizing || unassignedMissions.length === 0}>
+             <Button variant="outline" size="sm" onClick={handleOptimize} disabled={isOptimizing || unassignedMissions.length === 0 || isViewer}>
                 {isOptimizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 Optimiser avec l'IA
             </Button>
@@ -204,7 +208,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
                             </div>
                             <div>
                                 <Label htmlFor={`assign-${mission.id}`} className="sr-only">Assigner Agent</Label>
-                                <Select onValueChange={(agentId) => handleAssignmentChange(mission.id, agentId)} value={assignments[mission.id] || ""}>
+                                <Select onValueChange={(agentId) => handleAssignmentChange(mission.id, agentId)} value={assignments[mission.id] || ""} disabled={isViewer}>
                                     <SelectTrigger id={`assign-${mission.id}`} className="w-full">
                                         <SelectValue placeholder="Sélectionner un agent..." />
                                     </SelectTrigger>
@@ -229,7 +233,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
 
         <DialogFooter>
           <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-          <Button type="button" onClick={handleSaveAssignments} disabled={isSaving}>
+          <Button type="button" onClick={handleSaveAssignments} disabled={isSaving || isViewer}>
             {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enregistrement...</> : <><Save className="mr-2 h-4 w-4"/> Enregistrer les Assignations</>}
           </Button>
         </DialogFooter>
@@ -237,5 +241,3 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     </Dialog>
   );
 }
-
-    

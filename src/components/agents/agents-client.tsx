@@ -27,10 +27,14 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
 import { AgentForm } from "./agent-form";
+import { useAuth } from "@/context/auth-context";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
 export function AgentsClient() {
+  const { user } = useAuth();
+  const isViewer = user?.role === 'viewer';
+  
   const [isClient, setIsClient] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   useEffect(() => {
@@ -125,7 +129,7 @@ export function AgentsClient() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
+          <Button onClick={handleAddNew} disabled={isViewer}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
        <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="mb-4">

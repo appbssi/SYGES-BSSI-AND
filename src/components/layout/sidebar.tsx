@@ -12,16 +12,16 @@ import {
 import { Swords, Home, Users, Target, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/firebase";
 import { Button } from "../ui/button";
+import { useAuth } from "@/context/auth-context";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const auth = useAuth();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    await auth.signOut();
+    logout();
     router.replace("/login");
   };
 

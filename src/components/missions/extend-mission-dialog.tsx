@@ -21,6 +21,7 @@ import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { missionDoc } from "@/firebase/firestore/missions";
+import { useAuth } from "@/context/auth-context";
 
 interface ExtendMissionDialogProps {
   isOpen: boolean;
@@ -29,6 +30,9 @@ interface ExtendMissionDialogProps {
 }
 
 export function ExtendMissionDialog({ isOpen, setIsOpen, mission }: ExtendMissionDialogProps) {
+  const { user } = useAuth();
+  const isViewer = user?.role === 'viewer';
+  
   const [newEndDate, setNewEndDate] = useState<Date | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -87,7 +91,7 @@ export function ExtendMissionDialog({ isOpen, setIsOpen, mission }: ExtendMissio
             mode="single"
             selected={newEndDate}
             onSelect={setNewEndDate}
-            disabled={{ before: new Date(mission.startDate) }}
+            disabled={isViewer || { before: new Date(mission.startDate) }}
             initialFocus
             locale={fr}
           />
@@ -96,7 +100,7 @@ export function ExtendMissionDialog({ isOpen, setIsOpen, mission }: ExtendMissio
           <Button variant="ghost" onClick={() => setIsOpen(false)}>
             Annuler
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving || isViewer}>
             {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sauvegarde...</> : 'Sauvegarder'}
           </Button>
         </DialogFooter>
