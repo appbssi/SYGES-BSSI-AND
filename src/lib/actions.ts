@@ -7,6 +7,61 @@ import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
 import type { Mission } from "./types";
 
+async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum: string, currentId?: string): Promise<boolean> {
+    const agentsRef = db.collection('agents');
+    const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
+    if (snapshot.empty) {
+        return false;
+    }
+    if (!currentId) {
+        return true;
+    }
+    // If we are updating, check if the found agent is a different one
+    return snapshot.docs.some(doc => doc.id !== currentId);
+}
+
+const agentSchema = z.object({
+  id: z.string().optional(),
+  firstName: z.string().min(1, "Le prénom est requis."),
+  lastName: z.string().min(1, "Le nom de famille est requis."),
+  registrationNumber: z.string().min(1, "Le matricule est requis."),
+  rank: z.string().min(1, "Le grade est requis."),
+  contactNumber: z.string().min(1, "Le numéro de contact est requis."),
+  address: z.string().min(1, "L'adresse est requise."),
+});
+
+
+export async function createAgentAction(prevState: any, formData: FormData) {
+    const db = await initializeAdminApp().then(app => getFirestore(app));
+
+    const validatedFields = agentSchema.safeParse(Object.fromEntries(formData.entries()));
+
+    if (!validatedFields.success) {
+        return { errors: validatedFields.error.flatten().fieldErrors };
+    }
+    
+    const { registrationNumber } = validatedFields.data;
+
+    const isTaken = await isRegistrationNumberTaken(db, registrationNumber);
+    if (isTaken) {
+        return {
+            errors: {
+                registrationNumber: ["Ce matricule est déjà utilisé."],
+            },
+        };
+    }
+
+    try {
+        await db.collection('agents').add(validatedFields.data);
+        revalidatePath('/agents');
+        revalidatePath('/');
+        return { errors: {}, message: 'success' };
+    } catch (error) {
+        return { errors: {}, message: `Erreur serveur: ${error}` };
+    }
+}
+
+
 const missionSchema = z.object({
     name: z.string().min(1, "Le nom est requis."),
     description: z.string().min(1, "La description est requise."),
