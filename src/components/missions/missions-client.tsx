@@ -26,6 +26,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -67,6 +68,8 @@ export function MissionsClient({
   }
   
   const isAgentAvailableForMission = (agent: Agent, missionToCheck: Mission, allMissions: Mission[]): boolean => {
+    if (getMissionStatus(missionToCheck) === 'Terminée') return true;
+
     const missionStart = new Date(missionToCheck.startDate);
     const missionEnd = new Date(missionToCheck.endDate);
 
@@ -180,8 +183,6 @@ export function MissionsClient({
             </TableHeader>
             <TableBody>
               {missionsWithAgents.map((mission) => {
-                const availableAgents = initialAgents.filter(agent => isAgentAvailableForMission(agent, mission, initialMissions));
-                const unavailableAgents = initialAgents.filter(agent => !isAgentAvailableForMission(agent, mission, initialMissions));
                 
                 return (
                 <TableRow key={mission.id}>
