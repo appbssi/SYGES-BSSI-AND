@@ -66,7 +66,7 @@ export async function deleteAgentAction(id: string) {
 const missionSchema = z.object({
     name: z.string().min(1, "Le nom est requis"),
     details: z.string().min(1, "Les détails sont requis"),
-    agentId: z.string().nullable(),
+    agentIds: z.array(z.string()),
     startDate: z.string().datetime(),
     endDate: z.string().datetime(),
     priority: z.coerce.number().min(1).max(5),
@@ -77,11 +77,11 @@ const missionSchema = z.object({
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
     assignments.forEach(mission => {
         if (mission.id) {
-            updateMission(mission.id, { agentId: mission.agentId, notes: mission.notes });
+            updateMission(mission.id, { agentIds: mission.agentIds, notes: mission.notes });
         }
     });
     unassignedMissions.forEach(missionId => {
-        updateMission(missionId, { agentId: null });
+        updateMission(missionId, { agentIds: [] });
     });
     revalidatePath('/missions');
     revalidatePath('/agents');

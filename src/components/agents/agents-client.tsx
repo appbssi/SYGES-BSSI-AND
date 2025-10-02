@@ -53,7 +53,7 @@ export function AgentsClient({
     const now = new Date();
     const hasActiveMission = initialMissions.some(
       (m) =>
-        m.agentId === agentId &&
+        m.agentIds.includes(agentId) &&
         new Date(m.startDate) <= now &&
         new Date(m.endDate) >= now
     );

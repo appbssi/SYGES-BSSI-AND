@@ -13,9 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Download, MoreHorizontal, Trash2, UserPlus } from "lucide-react";
+import { Check, Download, MoreHorizontal, Trash2, UserPlus, X } from "lucide-react";
 import { format } from "date-fns";
-import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { exportToCsv } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -26,6 +25,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -41,7 +41,7 @@ import { deleteMissionAction, saveMissionAssignments } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 
-type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Omit<Agent, 'avatar'> | null, status: "Active" | "À venir" | "Terminée" };
+type MissionWithAgents = Omit<Mission, "agentIds"> & { agents: (Omit<Agent, 'avatar'> | null)[], status: "Active" | "À venir" | "Terminée" };
 
 export function MissionsClient({
   initialAgents,
@@ -50,7 +50,6 @@ export function MissionsClient({
   initialAgents: Agent[];
   initialMissions: Mission[];
 }) {
-  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
@@ -68,30 +67,32 @@ export function MissionsClient({
       const missionStart = new Date(missionToCheck.startDate);
       const missionEnd = new Date(missionToCheck.endDate);
       
-      const agentMissions = initialMissions.filter(m => m.agentId === agentId && m.id !== missionToCheck.id);
+      const agentMissions = initialMissions.filter(m => m.agentIds.includes(agentId) && m.id !== missionToCheck.id);
 
       for (const mission of agentMissions) {
           const existingStart = new Date(mission.startDate);
           const existingEnd = new Date(mission.endDate);
-          // Check for overlap
           if (missionStart < existingEnd && missionEnd > existingStart) {
-              return false; // Agent is busy
+              return false; 
           }
       }
-      return true; // Agent is available
+      return true;
   }
 
-  const missionsWithAgents: MissionWithAgent[] = initialMissions.map(
+  const missionsWithAgents: MissionWithAgents[] = initialMissions.map(
     (mission) => {
-      const agentData = initialAgents.find((a) => a.id === mission.agentId) || null;
-      const agent = agentData ? { ...agentData } : null;
-      if (agent) {
-        delete (agent as any).avatar;
-      }
+      const agentsData = mission.agentIds.map(id => initialAgents.find((a) => a.id === id) || null);
+      const agents = agentsData.map(agentData => {
+        if (agentData) {
+          const { avatar, ...rest } = agentData;
+          return rest;
+        }
+        return null;
+      });
 
       return {
       ...mission,
-      agent,
+      agents,
       status: getMissionStatus(mission)
     }}
   ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
@@ -99,8 +100,8 @@ export function MissionsClient({
   const handleExport = () => {
     const dataToExport = missionsWithAgents.map(m => ({
         nom_mission: m.name,
-        nom_agent: m.agent?.name || "Non assignée",
-        matricule_agent: m.agent?.registrationNumber || "N/A",
+        noms_agents: m.agents.map(a => a?.name || '').join('; ') || "Non assignée",
+        matricules_agents: m.agents.map(a => a?.registrationNumber || '').join('; ') || "N/A",
         date_debut: m.startDate,
         date_fin: m.endDate,
         statut: m.status,
@@ -113,11 +114,21 @@ export function MissionsClient({
     setIsAlertOpen(true);
   }
   
-  const handleAssignAgent = async (missionId: string, agentId: string | null) => {
-      await saveMissionAssignments([{ id: missionId, agentId: agentId }] as Mission[], []);
+  const handleToggleAgent = async (missionId: string, agentId: string) => {
+      const mission = initialMissions.find(m => m.id === missionId);
+      if (!mission) return;
+
+      let newAgentIds: string[];
+      if (mission.agentIds.includes(agentId)) {
+        newAgentIds = mission.agentIds.filter(id => id !== agentId);
+      } else {
+        newAgentIds = [...mission.agentIds, agentId];
+      }
+      
+      await saveMissionAssignments([{ id: missionId, agentIds: newAgentIds } as Mission], []);
       toast({
           title: "Assignation Mise à Jour",
-          description: "L'agent a été assigné à la mission."
+          description: "La liste des agents pour la mission a été mise à jour."
       });
   }
 
@@ -147,7 +158,7 @@ export function MissionsClient({
             <TableHeader>
               <TableRow>
                 <TableHead>Mission</TableHead>
-                <TableHead>Agent Assigné</TableHead>
+                <TableHead>Agents Assignés</TableHead>
                 <TableHead>Calendrier</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -155,13 +166,15 @@ export function MissionsClient({
             </TableHeader>
             <TableBody>
               {missionsWithAgents.map((mission) => {
-                const availableAgents = initialAgents.filter(agent => isAgentAvailable(agent.id, mission));
+                const availableAgents = initialAgents.filter(agent => isAgentAvailable(agent.id, mission) || mission.agentIds.includes(agent.id));
                 return (
                 <TableRow key={mission.id}>
                   <TableCell className="font-medium">{mission.name}</TableCell>
                   <TableCell>
-                    {mission.agent ? (
-                      <span>{mission.agent.name}</span>
+                    {mission.agents.length > 0 ? (
+                      <div className="flex flex-wrap gap-x-2 gap-y-1">
+                        {mission.agents.map(agent => agent && <Badge variant="secondary" key={agent.id}>{agent.name}</Badge>)}
+                      </div>
                     ) : (
                       <span className="text-muted-foreground">Non assignée</span>
                     )}
@@ -194,21 +207,19 @@ export function MissionsClient({
                         <DropdownMenuSub>
                            <DropdownMenuSubTrigger>
                                <UserPlus className="mr-2 h-4 w-4" />
-                               {mission.agentId ? "Changer l'agent" : "Assigner un agent"}
+                               Assigner des agents
                            </DropdownMenuSubTrigger>
                            <DropdownMenuPortal>
-                               <DropdownMenuSubContent>
-                                  {availableAgents.map(agent => (
-                                     <DropdownMenuItem key={agent.id} onClick={() => handleAssignAgent(mission.id, agent.id)}>
+                               <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                                  {initialAgents.map(agent => (
+                                     <DropdownMenuItem key={agent.id} onSelect={(e) => e.preventDefault()} onClick={() => handleToggleAgent(mission.id, agent.id)} disabled={!isAgentAvailable(agent.id, mission) && !mission.agentIds.includes(agent.id)}>
+                                         <div className="w-4 mr-2">
+                                            {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
+                                         </div>
                                          {agent.name}
                                      </DropdownMenuItem>
                                   ))}
-                                  {availableAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
-                                  {mission.agentId && (
-                                     <DropdownMenuItem className="text-destructive" onClick={() => handleAssignAgent(mission.id, null)}>
-                                         Désassigner
-                                     </DropdownMenuItem>
-                                  )}
+                                  {initialAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
                                </DropdownMenuSubContent>
                            </DropdownMenuPortal>
                         </DropdownMenuSub>

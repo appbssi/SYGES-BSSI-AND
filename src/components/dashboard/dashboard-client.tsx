@@ -19,14 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { format, getMonth } from "date-fns";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 export function DashboardClient({
@@ -41,7 +34,7 @@ export function DashboardClient({
     const activeMissions = missions.filter(
       (m) => new Date(m.startDate) <= now && new Date(m.endDate) >= now
     );
-    const busyAgentIds = new Set(activeMissions.map((m) => m.agentId));
+    const busyAgentIds = new Set(activeMissions.flatMap((m) => m.agentIds));
     const totalAgents = agents.length;
     const busyAgents = busyAgentIds.size;
     const availableAgents = totalAgents - busyAgents;
@@ -53,30 +46,10 @@ export function DashboardClient({
       activeMissionsCount: activeMissions.length,
       activeMissionsList: activeMissions.map(m => ({
           ...m,
-          agent: agents.find(a => a.id === m.agentId) || null
+          agents: m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[],
       }))
     };
   }, [agents, missions]);
-  
-  const missionChartData = useMemo(() => {
-    const monthCounts = Array(12).fill(0);
-    missions.forEach(mission => {
-        const month = getMonth(new Date(mission.startDate));
-        monthCounts[month]++;
-    });
-    const months = ["Janv", "Févr", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
-    return months.map((month, index) => ({
-        month,
-        missions: monthCounts[index]
-    }));
-  }, [missions]);
-
-  const chartConfig = {
-    missions: {
-      label: "Missions",
-      color: "hsl(var(--accent))",
-    },
-  } satisfies ChartConfig;
 
   return (
     <div className="space-y-6">
@@ -105,7 +78,7 @@ export function DashboardClient({
                 <TableHeader>
                     <TableRow>
                         <TableHead>Mission</TableHead>
-                        <TableHead>Agent</TableHead>
+                        <TableHead>Agents</TableHead>
                         <TableHead>Se termine le</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -115,8 +88,12 @@ export function DashboardClient({
                         <TableRow key={mission.id}>
                             <TableCell className="font-medium">{mission.name}</TableCell>
                             <TableCell>
-                                {mission.agent ? (
-                                    <span className="text-sm">{mission.agent.name}</span>
+                                {mission.agents.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                    {mission.agents.map(agent => (
+                                        <span key={agent.id} className="text-sm">{agent.name}</span>
+                                    )).reduce((prev, curr, i) => [prev, <span key={`sep-${i}`}>, </span>, curr] as any)}
+                                    </div>
                                 ) : "N/A"}
                             </TableCell>
                             <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>

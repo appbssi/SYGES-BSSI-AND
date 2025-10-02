@@ -12,11 +12,11 @@ let agents: Omit<Agent, 'avatar'>[] = [
 ];
 
 let missions: Mission[] = [
-  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentId: '1', startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), priority: 5 },
-  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentId: '5', startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), priority: 3 },
-  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentId: null, startDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), priority: 2 },
-  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentId: '4', startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
-  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentId: '2', startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
+  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentIds: ['1'], startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), priority: 5 },
+  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentIds: ['5'], startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), priority: 3 },
+  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentIds: [], startDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), priority: 2 },
+  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentIds: ['4'], startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
+  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentIds: ['2'], startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
 ];
 
 
@@ -48,7 +48,11 @@ export const updateAgent = (id: string, updatedAgent: Partial<Omit<Agent, 'id'>>
 export const deleteAgent = (id: string) => {
   agents = agents.filter(agent => agent.id !== id);
   // Also unassign from any missions
-  missions = missions.map(mission => mission.agentId === id ? { ...mission, agentId: null } : mission);
+  missions = missions.map(mission => 
+    mission.agentIds.includes(id) 
+      ? { ...mission, agentIds: mission.agentIds.filter(agentId => agentId !== id) } 
+      : mission
+  );
   return true;
 };
 

@@ -11,7 +11,7 @@ export type Mission = {
   id: string;
   name: string;
   details: string;
-  agentId: string | null;
+  agentIds: string[];
   startDate: string;
   endDate: string;
   priority: number;
