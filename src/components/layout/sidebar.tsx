@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -6,13 +7,23 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Swords, Home, Users, Target } from "lucide-react";
+import { Swords, Home, Users, Target, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/firebase";
+import { Button } from "../ui/button";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const auth = useAuth();
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.replace("/login");
+  };
 
   const isActive = (path: string) => pathname === path;
 
@@ -66,6 +77,12 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
+       <SidebarFooter>
+        <Button variant="destructive" onClick={handleLogout} className="w-full">
+          <LogOut className="mr-2" />
+          Se Déconnecter
+        </Button>
+      </SidebarFooter>
     </>
   );
 }
