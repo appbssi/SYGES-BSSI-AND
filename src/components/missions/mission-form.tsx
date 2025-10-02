@@ -44,7 +44,7 @@ type FormValues = {
 
 
 export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
-  const { control, handleSubmit, reset, formState: { isDirty, isSubmitSuccessful } } = useForm<FormValues>();
+  const { control, handleSubmit, reset, getValues, formState: { isDirty, isSubmitSuccessful } } = useForm<FormValues>();
   
   const [state, formAction, isPending] = useActionState(createMissionAction, initialState);
 
@@ -159,7 +159,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                  <Controller
                     name="endDate"
                     control={control}
-                    render={({ field: { name, value, onChange }, fieldState, formState: {getValues} }) => (
+                    render={({ field: { name, value, onChange } }) => (
                          <Popover>
                             <PopoverTrigger asChild>
                             <Button
