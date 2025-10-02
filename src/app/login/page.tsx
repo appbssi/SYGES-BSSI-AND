@@ -57,7 +57,6 @@ export default function LoginPage() {
             <Input
               id="login"
               type="text"
-              placeholder="BSSI"
               value={login}
               onChange={(e) => setLogin(e.target.value)}
               required
@@ -68,7 +67,6 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              placeholder="bssi"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
