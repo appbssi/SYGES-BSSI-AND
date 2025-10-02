@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
-import { addAgent, updateAgent, deleteAgent } from "@/firebase/firestore/agents";
-import { addMission, deleteMission } from "@/firebase/firestore/missions";
+import { updateAgent, deleteAgent } from "@/firebase/firestore/agents";
+import { deleteMission } from "@/firebase/firestore/missions";
 import type { Mission } from "./types";
 
 const agentSchema = z.object({
@@ -50,7 +50,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     };
   }
 
-  await addAgent(db, validatedFields.data);
+  await db.collection('agents').add(validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   return { errors: {}, message: 'success' };
@@ -91,8 +91,8 @@ export async function deleteAgentAction(id: string) {
   const snapshot = await missionsRef.where('agentIds', 'array-contains', id).get();
   const batch = db.batch();
   snapshot.forEach(doc => {
-      const mission = doc.data() as Mission;
-      const newAgentIds = mission.agentIds.filter((agentId: string) => agentId !== id);
+      const missionData = doc.data();
+      const newAgentIds = missionData.agentIds.filter((agentId: string) => agentId !== id);
       batch.update(doc.ref, { agentIds: newAgentIds });
   });
   await batch.commit();
@@ -124,7 +124,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
     }
     const adminApp = await initializeAdminApp();
     const db = getFirestore(adminApp);
-    await addMission(db, {
+    await db.collection('missions').add({
         ...validatedFields.data,
         agentIds: [], // Start with no agents assigned
     });
