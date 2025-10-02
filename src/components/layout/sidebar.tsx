@@ -23,7 +23,7 @@ export function AppSidebar() {
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Swords className="size-5" />
           </div>
-          <span className="text-lg font-semibold">eBrigade</span>
+          <span className="text-lg font-semibold">eBrigade-BSSI</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
