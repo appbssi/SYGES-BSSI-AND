@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -16,7 +17,7 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <head>
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased bg-background">
         {children}
         <Toaster />
       </body>
