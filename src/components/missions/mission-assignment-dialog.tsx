@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -42,8 +42,14 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [assignments, setAssignments] = useState<MissionAssignmentState>({});
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const getMissionStatus = (mission: Mission) => {
+    if (!isClient) return "Chargement...";
     const now = new Date();
     if (new Date(mission.endDate) < now) return "Terminée";
     if (new Date(mission.startDate) > now) return "À venir";
