@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { FirebaseClientProvider } from "@/firebase";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "eBrigade",
@@ -19,10 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={inter.variable} suppressHydrationWarning>
-      <body
-        className={cn("font-sans antialiased", inter.className)}
-      >
+    <html lang="fr" suppressHydrationWarning>
+      <body className={cn("antialiased", inter.className)}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
