@@ -39,7 +39,6 @@ const OptimizeMissionAssignmentInputSchema = z.object({
   missions: z.array(
     z.object({
       missionId: z.string().describe("Identifiant unique de la mission."),
-      priority: z.number().describe("Priorité de la mission (plus le nombre est élevé, plus la priorité est haute)."),
       startTime: z.string().datetime().describe("Heure de début de la mission."),
       endTime: z.string().datetime().describe("Heure de fin de la mission."),
     })
@@ -75,11 +74,10 @@ const prompt = ai.definePrompt({
   output: {schema: OptimizedMissionAssignmentOutputSchema},
   prompt: `Vous êtes un assistant IA spécialisé dans l'optimisation des assignations de missions pour une unité militaire.
 
-  Étant donné une liste d'agents avec leur disponibilité et leurs missions actuelles, et une liste de missions avec leurs priorités et délais, votre tâche est de créer un calendrier d'assignation optimisé.
+  Étant donné une liste d'agents avec leur disponibilité et leurs missions actuelles, et une liste de missions avec leurs délais, votre tâche est de créer un calendrier d'assignation optimisé.
 
   Considérez les facteurs suivants :
   - Disponibilité de l'agent : Assurez-vous que les agents ne sont assignés à des missions que pendant leurs plages de disponibilité. Les missions actuelles rendent les agents indisponibles pendant ces périodes.
-  - Priorité de la mission : Assignez les missions à plus haute priorité en premier.
   - Évitement des conflits : Détectez et résolvez tout conflit de temps potentiel entre les missions assignées au même agent. Si les conflits sont inévitables, notez-les dans les notes d'assignation.
   
   La réponse doit être en français.

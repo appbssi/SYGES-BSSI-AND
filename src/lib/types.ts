@@ -14,6 +14,5 @@ export type Mission = {
   agentIds: string[];
   startDate: string;
   endDate: string;
-  priority: number;
   notes?: string;
 };

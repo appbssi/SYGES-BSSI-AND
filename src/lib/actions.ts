@@ -71,7 +71,6 @@ const missionSchema = z.object({
     details: z.string().min(1, "Les détails sont requis."),
     startDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de début invalide."),
     endDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de fin invalide."),
-    priority: z.coerce.number().min(1).max(5),
 }).refine(data => new Date(data.startDate) < new Date(data.endDate), {
     message: "La date de fin doit être après la date de début.",
     path: ["endDate"],

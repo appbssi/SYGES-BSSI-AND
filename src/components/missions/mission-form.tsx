@@ -25,7 +25,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import { fr } from "date-fns/locale";
-import { Slider } from "../ui/slider";
 
 interface MissionFormProps {
   isOpen: boolean;
@@ -48,7 +47,6 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
 
   const startDate = watch("startDate");
   const endDate = watch("endDate");
-  const priority = watch("priority");
 
   useEffect(() => {
     const today = new Date();
@@ -71,7 +69,6 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
         details: '',
         startDate: defaultStartDate,
         endDate: defaultEndDate,
-        priority: 3,
       });
     }
   }, [isOpen, mission, reset, defaultStartDate, defaultEndDate]);
@@ -179,20 +176,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                   </div>
               </div>
           )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="priority" className="text-right">Priorité</Label>
-            <div className="col-span-3 flex items-center gap-4">
-              <Slider
-                id="priority"
-                min={1} max={5}
-                defaultValue={[priority || 3]}
-                onValueChange={(value) => setValue("priority", value[0])}
-              />
-              <span className="w-8 text-center font-bold">{priority || 3}</span>
-            </div>
-            <input type="hidden" {...register("priority")} />
-          </div>
-
+          
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
             <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Création...' : 'Créer la Mission'}</Button>

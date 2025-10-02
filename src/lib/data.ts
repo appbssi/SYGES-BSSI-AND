@@ -12,11 +12,11 @@ let agents: Omit<Agent, 'avatar'>[] = [
 ];
 
 let missions: Mission[] = [
-  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentIds: ['1'], startDate: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(), priority: 5 },
-  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentIds: ['5'], startDate: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString(), priority: 3 },
-  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentIds: [], startDate: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 20)).toISOString(), priority: 2 },
-  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentIds: ['4'], startDate: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(), priority: 4 },
-  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentIds: ['2'], startDate: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), priority: 4 },
+  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentIds: ['1'], startDate: new Date(new Date().setDate(new Date().getDate() - 5)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString() },
+  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentIds: ['5'], startDate: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString() },
+  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentIds: [], startDate: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 20)).toISOString() },
+  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentIds: ['4'], startDate: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString() },
+  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentIds: ['2'], startDate: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(), endDate: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString() },
 ];
 
 
