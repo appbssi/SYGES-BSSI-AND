@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import jsPDF from "jspdf";
+import autoTable from 'jspdf-autotable';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -32,4 +34,15 @@ export function exportToCsv<T extends Record<string, any>>(data: T[], filename: 
     link.click();
     document.body.removeChild(link);
   }
+}
+
+export function exportToPdf(title: string, headers: string[], body: (string | null | undefined)[][], filename: string) {
+    const doc = new jsPDF();
+    doc.text(title, 14, 15);
+    autoTable(doc, {
+        startY: 20,
+        head: [headers],
+        body: body,
+    });
+    doc.save(filename);
 }

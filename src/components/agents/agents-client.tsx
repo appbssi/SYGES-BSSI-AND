@@ -19,6 +19,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -31,8 +35,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AgentForm } from "./agent-form";
-import { Download, MoreHorizontal, Plus, Trash2, FilePenLine } from "lucide-react";
-import { exportToCsv } from "@/lib/utils";
+import { Download, MoreHorizontal, Plus, Trash2, FilePenLine, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
+import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { deleteAgentAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -102,12 +106,24 @@ export function AgentsClient({
     }
   }
 
-  const handleExport = () => {
-    const dataToExport = filteredAgents.map(({ id, ...rest }) => ({
+  const handleExportCsv = () => {
+    const dataToExport = filteredAgents.map(({ id, status, ...rest }) => ({
       ...rest,
-      status: rest.status === "Disponible" ? "Disponible" : "Occupé",
+      status: status === "Disponible" ? "Disponible" : "Occupé",
     }));
     exportToCsv(dataToExport, "ebrigade_agents.csv");
+  };
+  
+  const handleExportPdf = () => {
+    const headers = ["Nom", "Matricule", "Grade", "Contact", "Statut"];
+    const body = filteredAgents.map(({ name, registrationNumber, rank, contact, status }) => [
+        name,
+        registrationNumber,
+        rank,
+        contact,
+        status,
+    ]);
+    exportToPdf("Liste des Agents", headers, body, "ebrigade_agents.pdf");
   };
 
   return (
@@ -115,7 +131,21 @@ export function AgentsClient({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Liste des Agents</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="mr-2" /> Exporter <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={handleExportCsv}>
+                <FileSpreadsheet className="mr-2" /> Exporter en CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPdf}>
+                <FileText className="mr-2" /> Exporter en PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
