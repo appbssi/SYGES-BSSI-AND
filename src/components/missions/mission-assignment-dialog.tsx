@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Agent, Mission } from "@/lib/types";
-import { BrainCircuit, Loader2, Save } from "lucide-react";
+import { BrainCircuit, Loader2, Save, Sparkles } from "lucide-react";
 import { ScrollArea } from "../ui/scroll-area";
 import {
   Select,
@@ -26,6 +26,7 @@ import {
 import { Label } from "../ui/label";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { optimizeMissionAssignment } from "@/ai/flows/optimize-mission-assignment";
 
 interface MissionAssignmentDialogProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
   const { toast } = useToast();
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const [assignments, setAssignments] = useState<MissionAssignmentState>({});
   const [isClient, setIsClient] = useState(false);
 
@@ -67,7 +69,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     const missionStart = new Date(mission.startDate);
     const missionEnd = new Date(mission.endDate);
     
-    // Find agents who are busy during this mission's timeframe due to other manual assignments in this dialog
     const busyInDialogAgentIds = new Set<string>();
     Object.entries(assignments).forEach(([assignedMissionId, agentId]) => {
       if (assignedMissionId === mission.id) return;
@@ -82,7 +83,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     });
 
     return agents.filter(agent => {
-      // Is agent busy with an existing, confirmed mission?
       const hasConflict = missions.some(m =>
         m.agentIds.includes(agent.id) &&
         getMissionStatus(m) !== 'Terminée' &&
@@ -90,7 +90,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
         new Date(m.endDate) > missionStart
       );
       
-      // Is agent busy with a selection in the current dialog?
       const isBusyInDialog = busyInDialogAgentIds.has(agent.id);
       
       return !hasConflict && !isBusyInDialog;
@@ -99,6 +98,50 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
 
   const handleAssignmentChange = (missionId: string, agentId: string) => {
     setAssignments(prev => ({ ...prev, [missionId]: agentId }));
+  };
+  
+  const handleOptimize = async () => {
+    setIsOptimizing(true);
+    try {
+        const agentData = agents.map(agent => ({
+            agentId: agent.id,
+            availability: [{ start: new Date(0).toISOString(), end: new Date(8640000000000000).toISOString() }], // Assuming agents are always available unless on a mission
+            currentMissions: missions
+                .filter(m => m.agentIds.includes(agent.id))
+                .map(m => ({ missionId: m.id, start: m.startDate, end: m.endDate }))
+        }));
+
+        const missionData = unassignedMissions.map(m => ({
+            missionId: m.id,
+            startTime: m.startDate,
+            endTime: m.endDate,
+        }));
+        
+        const result = await optimizeMissionAssignment({ agents: agentData, missions: missionData });
+
+        if (result.assignments) {
+            const newAssignments: MissionAssignmentState = {};
+            result.assignments.forEach(a => {
+                newAssignments[a.missionId] = a.agentId;
+            });
+            setAssignments(newAssignments);
+            toast({ title: "Optimisation Réussie", description: "Les assignations suggérées ont été chargées." });
+        }
+        
+        if (result.unassignedMissions.length > 0) {
+            toast({ variant: 'destructive', title: "Missions Non Assignées", description: `${result.unassignedMissions.length} mission(s) n'ont pas pu être assignées.` });
+        }
+
+    } catch (error) {
+        console.error("Error optimizing assignments: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur d'Optimisation",
+            description: "Une erreur est survenue lors de l'optimisation IA."
+        });
+    } finally {
+        setIsOptimizing(false);
+    }
   };
 
 
@@ -140,8 +183,12 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
       <DialogContent className="max-w-2xl h-[70vh]">
         <DialogHeader>
           <DialogTitle>Assignation Manuelle des Missions</DialogTitle>
-          <DialogDescription>
-            Assignez des agents disponibles aux missions non-assignées.
+          <DialogDescription className="flex justify-between items-center">
+            <span>Assignez des agents disponibles aux missions non-assignées.</span>
+             <Button variant="outline" size="sm" onClick={handleOptimize} disabled={isOptimizing || unassignedMissions.length === 0}>
+                {isOptimizing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                Optimiser avec l'IA
+            </Button>
           </DialogDescription>
         </DialogHeader>
         
@@ -190,3 +237,5 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     </Dialog>
   );
 }
+
+    
