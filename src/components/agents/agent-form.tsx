@@ -73,13 +73,24 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   const onSubmit = async (data: FormValues) => {
     setIsSaving(true);
     
-    // Check if registration number is unique
     const agentsRef = agentsCollection(firestore);
-    const q = query(agentsRef, where("registrationNumber", "==", data.registrationNumber));
-    const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
+    // Check if registration number is unique
+    const qReg = query(agentsRef, where("registrationNumber", "==", data.registrationNumber));
+    const querySnapshotReg = await getDocs(qReg);
+
+    if (!querySnapshotReg.empty) {
         setError("registrationNumber", { type: "manual", message: "Ce matricule est déjà utilisé." });
+        setIsSaving(false);
+        return;
+    }
+
+    // Check if contact number is unique
+    const qContact = query(agentsRef, where("contactNumber", "==", data.contactNumber));
+    const querySnapshotContact = await getDocs(qContact);
+    
+    if (!querySnapshotContact.empty) {
+        setError("contactNumber", { type: "manual", message: "Ce contact est déjà utilisé." });
         setIsSaving(false);
         return;
     }
