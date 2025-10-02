@@ -63,21 +63,26 @@ export function MissionsClient({
     return "Active";
   }
   
-  const isAgentAvailable = (agentId: string, missionToCheck: Mission) => {
-      const missionStart = new Date(missionToCheck.startDate);
-      const missionEnd = new Date(missionToCheck.endDate);
-      
-      const agentMissions = initialMissions.filter(m => m.agentIds.includes(agentId) && m.id !== missionToCheck.id);
+  const isAgentAvailableForMission = (agent: Agent, missionToCheck: Mission, allMissions: Mission[]): boolean => {
+    const missionStart = new Date(missionToCheck.startDate);
+    const missionEnd = new Date(missionToCheck.endDate);
 
-      for (const mission of agentMissions) {
-          const existingStart = new Date(mission.startDate);
-          const existingEnd = new Date(mission.endDate);
-          if (missionStart < existingEnd && missionEnd > existingStart) {
-              return false; 
-          }
+    const conflictingMissions = allMissions.filter(m =>
+      m.id !== missionToCheck.id &&
+      m.agentIds.includes(agent.id) &&
+      getMissionStatus(m) !== 'Terminée'
+    );
+
+    for (const mission of conflictingMissions) {
+      const existingStart = new Date(mission.startDate);
+      const existingEnd = new Date(mission.endDate);
+      if (missionStart < existingEnd && missionEnd > existingStart) {
+        return false;
       }
-      return true;
-  }
+    }
+    return true;
+  };
+
 
   const missionsWithAgents: MissionWithAgents[] = initialMissions.map(
     (mission) => {
@@ -166,7 +171,9 @@ export function MissionsClient({
             </TableHeader>
             <TableBody>
               {missionsWithAgents.map((mission) => {
-                const availableAgents = initialAgents.filter(agent => isAgentAvailable(agent.id, mission) || mission.agentIds.includes(agent.id));
+                const availableAgents = initialAgents.filter(agent => isAgentAvailableForMission(agent, mission, initialMissions));
+                const unavailableAgents = initialAgents.filter(agent => !isAgentAvailableForMission(agent, mission, initialMissions));
+                
                 return (
                 <TableRow key={mission.id}>
                   <TableCell className="font-medium">{mission.name}</TableCell>
@@ -211,15 +218,19 @@ export function MissionsClient({
                            </DropdownMenuSubTrigger>
                            <DropdownMenuPortal>
                                <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-                                  {availableAgents.map(agent => (
-                                     <DropdownMenuItem key={agent.id} onSelect={(e) => e.preventDefault()} onClick={() => handleToggleAgent(mission.id, agent.id)}>
+                                  {initialAgents.map(agent => (
+                                     <DropdownMenuItem 
+                                        key={agent.id} 
+                                        onSelect={(e) => e.preventDefault()} 
+                                        onClick={() => handleToggleAgent(mission.id, agent.id)}
+                                        disabled={!isAgentAvailableForMission(agent, mission, initialMissions) && !mission.agentIds.includes(agent.id)}
+                                      >
                                          <div className="w-4 mr-2">
                                             {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
                                          </div>
                                          {agent.name}
                                      </DropdownMenuItem>
                                   ))}
-                                  {availableAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
                                </DropdownMenuSubContent>
                            </DropdownMenuPortal>
                         </DropdownMenuSub>
