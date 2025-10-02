@@ -14,9 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, Download, MoreHorizontal, Plus, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Download, MoreHorizontal, Plus, Trash2, UserPlus, Users, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
 import { format } from "date-fns";
-import { exportToCsv } from "@/lib/utils";
+import { exportToCsv, exportToPdf } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +43,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MissionForm } from "./mission-form";
+import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 
 type MissionWithAgents = Omit<Mission, "agentIds"> & { agents: (Omit<Agent, 'avatar'> | null)[], status: "Active" | "À venir" | "Terminée" };
 
@@ -55,6 +56,7 @@ export function MissionsClient({
 }) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
 
@@ -108,17 +110,30 @@ export function MissionsClient({
     }}
   ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   
-  const handleExport = () => {
+  const handleExportCsv = () => {
     const dataToExport = missionsWithAgents.map(m => ({
         nom_mission: m.name,
         noms_agents: m.agents.map(a => a?.name || '').join('; ') || "Non assignée",
         matricules_agents: m.agents.map(a => a?.registrationNumber || '').join('; ') || "N/A",
-        date_debut: m.startDate,
-        date_fin: m.endDate,
+        date_debut: format(new Date(m.startDate), 'P', { locale: fr }),
+        date_fin: format(new Date(m.endDate), 'P', { locale: fr }),
         statut: m.status,
     }));
     exportToCsv(dataToExport, "ebrigade_missions.csv");
   };
+
+  const handleExportPdf = () => {
+    const headers = ["Mission", "Agents", "Début", "Fin", "Statut"];
+    const body = missionsWithAgents.map(m => [
+        m.name,
+        m.agents.map(a => a?.name).filter(Boolean).join(', ') || 'Non assignée',
+        format(new Date(m.startDate), 'P', { locale: fr }),
+        format(new Date(m.endDate), 'P', { locale: fr }),
+        m.status,
+    ]);
+    exportToPdf("Journal de Mission", headers, body, "ebrigade_missions.pdf");
+  };
+
 
   const handleDelete = (mission: Mission) => {
     setSelectedMission(mission);
@@ -165,7 +180,22 @@ export function MissionsClient({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Journal de Mission</h2>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
+            <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(true)}><UserPlus className="mr-2" /> Assigner</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <Download className="mr-2" /> Exporter <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={handleExportCsv}>
+                  <FileSpreadsheet className="mr-2" /> Exporter en CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPdf}>
+                  <FileText className="mr-2" /> Exporter en PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button onClick={handleAddNew}><Plus className="mr-2" /> Créer une Mission</Button>
         </div>
       </div>
@@ -281,6 +311,13 @@ export function MissionsClient({
         setIsOpen={setIsFormOpen} 
         mission={selectedMission}
       />
+      
+      <MissionAssignmentDialog
+        isOpen={isAssignmentDialogOpen}
+        setIsOpen={setIsAssignmentDialogOpen}
+        agents={initialAgents}
+        missions={initialMissions}
+      />
 
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -299,3 +336,5 @@ export function MissionsClient({
     </>
   );
 }
+
+    
