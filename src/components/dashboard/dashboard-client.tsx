@@ -94,30 +94,8 @@ export function DashboardClient({
           icon={Target}
         />
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Aperçu des Missions</CardTitle>
-            <CardDescription>Nombre de missions commencées par mois cette année.</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                <BarChart accessibilityLayer data={missionChartData}>
-                    <CartesianGrid vertical={false} />
-                    <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 4)}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="missions" fill="var(--color-missions)" radius={4} />
-                </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-3">
+      <div className="grid gap-6 md:grid-cols-1">
+        <Card>
           <CardHeader>
             <CardTitle>Missions Actives</CardTitle>
             <CardDescription>Missions actuellement en cours.</CardDescription>
