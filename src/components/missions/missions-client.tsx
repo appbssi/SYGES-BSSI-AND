@@ -84,7 +84,7 @@ export function MissionsClient({
       const agentsData = mission.agentIds.map(id => initialAgents.find((a) => a.id === id) || null);
       const agents = agentsData.map(agentData => {
         if (agentData) {
-          const { avatar, ...rest } = agentData;
+          const { ...rest } = agentData;
           return rest;
         }
         return null;
@@ -211,15 +211,15 @@ export function MissionsClient({
                            </DropdownMenuSubTrigger>
                            <DropdownMenuPortal>
                                <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-                                  {initialAgents.map(agent => (
-                                     <DropdownMenuItem key={agent.id} onSelect={(e) => e.preventDefault()} onClick={() => handleToggleAgent(mission.id, agent.id)} disabled={!isAgentAvailable(agent.id, mission) && !mission.agentIds.includes(agent.id)}>
+                                  {availableAgents.map(agent => (
+                                     <DropdownMenuItem key={agent.id} onSelect={(e) => e.preventDefault()} onClick={() => handleToggleAgent(mission.id, agent.id)}>
                                          <div className="w-4 mr-2">
                                             {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
                                          </div>
                                          {agent.name}
                                      </DropdownMenuItem>
                                   ))}
-                                  {initialAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
+                                  {availableAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
                                </DropdownMenuSubContent>
                            </DropdownMenuPortal>
                         </DropdownMenuSub>
