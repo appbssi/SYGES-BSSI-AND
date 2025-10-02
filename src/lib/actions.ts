@@ -17,9 +17,7 @@ const agentSchema = z.object({
   address: z.string().min(1, "L'adresse est requise"),
 });
 
-async function isRegistrationNumberTaken(regNum: string, currentId?: string) {
-    const adminApp = await initializeAdminApp();
-    const db = getFirestore(adminApp);
+async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum: string, currentId?: string) {
     const agentsRef = db.collection('agents');
     const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
     if (snapshot.empty) {
@@ -42,14 +40,15 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     };
   }
 
-  if (await isRegistrationNumberTaken(validatedFields.data.registrationNumber)) {
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+  
+  if (await isRegistrationNumberTaken(db, validatedFields.data.registrationNumber)) {
      return {
       errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
   await addAgent(db, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
@@ -66,14 +65,15 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
     };
   }
   
-  if (await isRegistrationNumberTaken(validatedFields.data.registrationNumber, id)) {
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+
+  if (await isRegistrationNumberTaken(db, validatedFields.data.registrationNumber, id)) {
      return {
       errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
   await updateAgent(db, id, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
