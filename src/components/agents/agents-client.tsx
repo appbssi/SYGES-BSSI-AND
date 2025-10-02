@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,26 +40,33 @@ import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { deleteAgentAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { agentsCollection } from "@/firebase/firestore/agents";
+import { missionsCollection } from "@/firebase/firestore/missions";
 
-type AgentWithStatus = Omit<Agent, 'avatar'> & { status: "Disponible" | "Occupé" };
+type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" };
 
-export function AgentsClient({
-  initialAgents,
-  initialMissions,
-}: {
-  initialAgents: Agent[];
-  initialMissions: Mission[];
-}) {
+export function AgentsClient() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<"all" | "Disponible" | "Occupé">("all");
 
+  const firestore = useFirestore();
+
+  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
+
+  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
+  
+  const agents = agentsData || [];
+  const missions = missionsData || [];
 
   const getAgentStatus = (agentId: string) => {
     const now = new Date();
-    const hasActiveMission = initialMissions.some(
+    const hasActiveMission = missions.some(
       (m) =>
         m.agentIds.includes(agentId) &&
         new Date(m.startDate) <= now &&
@@ -68,16 +75,15 @@ export function AgentsClient({
     return hasActiveMission ? "Occupé" : "Disponible";
   };
 
-  const agentsWithStatus: AgentWithStatus[] = initialAgents.map(({avatar, ...agent}) => ({
+  const agentsWithStatus: AgentWithStatus[] = useMemo(() => agents.map((agent) => ({
     ...agent,
     status: getAgentStatus(agent.id),
-  }));
+  })), [agents, missions]);
   
   const filteredAgents = agentsWithStatus.filter(agent => {
     if (statusFilter === 'all') return true;
     return agent.status === statusFilter;
   });
-
 
   const handleEdit = (agent: Agent) => {
     setSelectedAgent(agent);
@@ -170,42 +176,49 @@ export function AgentsClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAgents.map((agent) => (
-                <TableRow key={agent.id}>
-                  <TableCell>
-                    <div className="font-medium">{agent.name}</div>
-                  </TableCell>
-                  <TableCell>{agent.registrationNumber}</TableCell>
-                  <TableCell>{agent.rank}</TableCell>
-                  <TableCell>{agent.contact}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={agent.status === "Disponible" ? "secondary" : "destructive"}
-                      className={agent.status === "Disponible" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
-                    >
-                      {agent.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEdit(agent)}>
-                          <FilePenLine className="mr-2 h-4 w-4" /> Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {(agentsLoading || missionsLoading) ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    Chargement des données...
                   </TableCell>
                 </TableRow>
-              ))}
-               {filteredAgents.length === 0 && (
+              ) : filteredAgents.length > 0 ? (
+                filteredAgents.map((agent) => (
+                  <TableRow key={agent.id}>
+                    <TableCell>
+                      <div className="font-medium">{agent.name}</div>
+                    </TableCell>
+                    <TableCell>{agent.registrationNumber}</TableCell>
+                    <TableCell>{agent.rank}</TableCell>
+                    <TableCell>{agent.contact}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={agent.status === "Disponible" ? "secondary" : "destructive"}
+                        className={agent.status === "Disponible" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
+                      >
+                        {agent.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleEdit(agent)}>
+                            <FilePenLine className="mr-2 h-4 w-4" /> Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+               ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,21 +44,29 @@ import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MissionForm } from "./mission-form";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { agentsCollection } from "@/firebase/firestore/agents";
+import { missionsCollection } from "@/firebase/firestore/missions";
 
-type MissionWithAgents = Omit<Mission, "agentIds"> & { agents: (Omit<Agent, 'avatar'> | null)[], status: "Active" | "À venir" | "Terminée" };
+type MissionWithAgents = Mission & { agents: Agent[], status: "Active" | "À venir" | "Terminée" };
 
-export function MissionsClient({
-  initialAgents,
-  initialMissions,
-}: {
-  initialAgents: Agent[];
-  initialMissions: Mission[];
-}) {
+export function MissionsClient() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
+  
+  const firestore = useFirestore();
+
+  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
+
+  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
+
+  const initialAgents = agentsData || [];
+  const initialMissions = missionsData || [];
 
   const getMissionStatus = (mission: Mission): "Active" | "À venir" | "Terminée" => {
     const now = new Date();
@@ -92,23 +100,13 @@ export function MissionsClient({
   };
 
 
-  const missionsWithAgents: MissionWithAgents[] = initialMissions.map(
-    (mission) => {
-      const agentsData = mission.agentIds.map(id => initialAgents.find((a) => a.id === id) || null);
-      const agents = agentsData.map(agentData => {
-        if (agentData) {
-          const { ...rest } = agentData;
-          return rest;
-        }
-        return null;
-      });
-
-      return {
+  const missionsWithAgents: MissionWithAgents[] = useMemo(() => initialMissions.map(
+    (mission) => ({
       ...mission,
-      agents,
+      agents: mission.agentIds.map(id => initialAgents.find((a) => a.id === id)).filter(Boolean) as Agent[],
       status: getMissionStatus(mission)
-    }}
-  ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    })
+  ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()), [initialMissions, initialAgents]);
   
   const handleExportCsv = () => {
     const dataToExport = missionsWithAgents.map(m => ({
@@ -133,7 +131,6 @@ export function MissionsClient({
     ]);
     exportToPdf("Journal de Mission", headers, body, "ebrigade_missions.pdf");
   };
-
 
   const handleDelete = (mission: Mission) => {
     setSelectedMission(mission);
@@ -175,6 +172,8 @@ export function MissionsClient({
     }
   }
 
+  const isLoading = agentsLoading || missionsLoading;
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -212,9 +211,14 @@ export function MissionsClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionsWithAgents.map((mission) => {
-                
-                return (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    Chargement des missions...
+                  </TableCell>
+                </TableRow>
+              ) : missionsWithAgents.length > 0 ? (
+                missionsWithAgents.map((mission) => (
                 <TableRow key={mission.id}>
                   <TableCell className="font-medium">{mission.name}</TableCell>
                   <TableCell>
@@ -300,7 +304,13 @@ export function MissionsClient({
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )})}
+              ))) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    Aucune mission trouvée.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
@@ -336,5 +346,3 @@ export function MissionsClient({
     </>
   );
 }
-
-    

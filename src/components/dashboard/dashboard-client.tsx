@@ -22,23 +22,31 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { agentsCollection } from "@/firebase/firestore/agents";
+import { missionsCollection } from "@/firebase/firestore/missions";
 
-export function DashboardClient({
-  agents,
-  missions,
-}: {
-  agents: Agent[];
-  missions: Mission[];
-}) {
+export function DashboardClient() {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const firestore = useFirestore();
+
+  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
+
+  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
+  
+  const agents = agentsData || [];
+  const missions = missionsData || [];
+
   const stats = useMemo(() => {
     if (!isClient) {
         return {
-            totalAgents: agents.length,
+            totalAgents: 0,
             availableAgents: 0,
             busyAgents: 0,
             activeMissionsCount: 0,
@@ -65,20 +73,22 @@ export function DashboardClient({
       }))
     };
   }, [agents, missions, isClient]);
+  
+  const isLoading = agentsLoading || missionsLoading;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Agents (Total)" value={stats.totalAgents} icon={Users} />
+        <StatCard title="Agents (Total)" value={isLoading ? "..." : stats.totalAgents} icon={Users} />
         <StatCard
           title="Agents Disponibles"
-          value={stats.availableAgents}
+          value={isLoading ? "..." : stats.availableAgents}
           icon={UserCheck}
         />
-        <StatCard title="Agents Occupés" value={stats.busyAgents} icon={UserX} />
+        <StatCard title="Agents Occupés" value={isLoading ? "..." : stats.busyAgents} icon={UserX} />
         <StatCard
           title="Missions Actives"
-          value={stats.activeMissionsCount}
+          value={isLoading ? "..." : stats.activeMissionsCount}
           icon={Target}
         />
       </div>
@@ -89,7 +99,9 @@ export function DashboardClient({
             <CardDescription>Missions actuellement en cours.</CardDescription>
           </CardHeader>
           <CardContent>
-             {isClient ? (
+             {isLoading ? (
+              <div className="text-center text-muted-foreground py-8">Chargement...</div>
+            ) : (
               <Table>
                   <TableHeader>
                       <TableRow>
@@ -117,8 +129,6 @@ export function DashboardClient({
                       ))}
                   </TableBody>
               </Table>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">Chargement...</div>
             )}
           </CardContent>
         </Card>

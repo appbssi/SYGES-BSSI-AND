@@ -3,8 +3,12 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { addAgent, updateAgent, deleteAgent, addMission, updateMission, deleteMission, isRegistrationNumberTaken } from "./data";
+import { getFirestore } from "firebase-admin/firestore";
+import { initializeAdminApp } from "@/firebase/admin-init";
+import { addAgent, updateAgent, deleteAgent, agentsCollection } from "@/firebase/firestore/agents";
+import { addMission, updateMission, deleteMission } from "@/firebase/firestore/missions";
 import type { Agent, Mission } from "./types";
+import { getAuth } from "firebase-admin/auth";
 
 const agentSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
@@ -13,6 +17,21 @@ const agentSchema = z.object({
   contact: z.string().min(1, "Le contact est requis"),
   address: z.string().min(1, "L'adresse est requise"),
 });
+
+async function isRegistrationNumberTaken(regNum: string, currentId?: string) {
+    const adminApp = await initializeAdminApp();
+    const db = getFirestore(adminApp);
+    const agentsRef = db.collection('agents');
+    const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
+    if (snapshot.empty) {
+        return false;
+    }
+    if (!currentId) {
+        return true; // creating new, and number already exists
+    }
+    // updating, check if it's a different agent
+    return snapshot.docs.some(doc => doc.id !== currentId);
+}
 
 export async function createAgentAction(prevState: any, formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
@@ -24,13 +43,15 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     };
   }
 
-  if (isRegistrationNumberTaken(validatedFields.data.registrationNumber)) {
+  if (await isRegistrationNumberTaken(validatedFields.data.registrationNumber)) {
      return {
       errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
-  addAgent(validatedFields.data);
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+  addAgent(db, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   return {};
@@ -46,13 +67,15 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
     };
   }
   
-  if (isRegistrationNumberTaken(validatedFields.data.registrationNumber, id)) {
+  if (await isRegistrationNumberTaken(validatedFields.data.registrationNumber, id)) {
      return {
       errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
-  updateAgent(id, validatedFields.data);
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+  updateAgent(db, id, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
@@ -60,7 +83,22 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
 }
 
 export async function deleteAgentAction(id: string) {
-  deleteAgent(id);
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+  
+  // Also unassign from any missions
+  const missionsRef = db.collection('missions');
+  const snapshot = await missionsRef.where('agentIds', 'array-contains', id).get();
+  const batch = db.batch();
+  snapshot.forEach(doc => {
+      const mission = doc.data() as Mission;
+      const newAgentIds = mission.agentIds.filter((agentId: string) => agentId !== id);
+      batch.update(doc.ref, { agentIds: newAgentIds });
+  });
+  await batch.commit();
+
+  deleteAgent(db, id);
+
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
@@ -84,8 +122,9 @@ export async function createMissionAction(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         return { errors: validatedFields.error.flatten().fieldErrors };
     }
-
-    addMission({
+    const adminApp = await initializeAdminApp();
+    const db = getFirestore(adminApp);
+    addMission(db, {
         ...validatedFields.data,
         agentIds: [], // Start with no agents assigned
     });
@@ -96,21 +135,33 @@ export async function createMissionAction(prevState: any, formData: FormData) {
 }
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
+    const adminApp = await initializeAdminApp();
+    const db = getFirestore(adminApp);
+
+    const batch = db.batch();
+
     assignments.forEach(mission => {
         if (mission.id) {
-            updateMission(mission.id, { agentIds: mission.agentIds as string[], notes: mission.notes });
+            const missionRef = db.collection('missions').doc(mission.id);
+            batch.update(missionRef, { agentIds: mission.agentIds as string[], notes: mission.notes });
         }
     });
     unassignedMissions.forEach(missionId => {
-        updateMission(missionId, { agentIds: [] });
+        const missionRef = db.collection('missions').doc(missionId);
+        batch.update(missionRef, { agentIds: [] });
     });
+
+    await batch.commit();
+
     revalidatePath('/missions');
     revalidatePath('/agents');
     revalidatePath('/');
 }
 
 export async function deleteMissionAction(id: string) {
-  deleteMission(id);
+  const adminApp = await initializeAdminApp();
+  const db = getFirestore(adminApp);
+  deleteMission(db, id);
   revalidatePath("/missions");
   revalidatePath("/");
 }

@@ -3,12 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
-import { getAgents, getMissions } from "@/lib/data";
 import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { FirebaseClientProvider } from "@/firebase";
 
 export default function DashboardPage() {
-  const agents = getAgents();
-  const missions = getMissions();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,8 +17,10 @@ export default function DashboardPage() {
   }, [router]);
 
   return (
-    <MainLayout>
-      <DashboardClient agents={agents} missions={missions} />
-    </MainLayout>
+    <FirebaseClientProvider>
+      <MainLayout>
+        <DashboardClient />
+      </MainLayout>
+    </FirebaseClientProvider>
   );
 }
