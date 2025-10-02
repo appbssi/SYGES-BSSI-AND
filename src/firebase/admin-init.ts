@@ -1,6 +1,5 @@
 
-import { getApps, initializeApp, cert, App } from 'firebase-admin/app';
-import { firebaseConfig } from './config';
+import { getApps, initializeApp, App } from 'firebase-admin/app';
 
 // IMPORTANT: DO NOT MODIFY THIS FILE
 // This file is used to initialize the Firebase Admin SDK.
@@ -12,20 +11,9 @@ export async function initializeAdminApp(): Promise<App> {
     return apps[0];
   }
 
-  // This is a simplified service account object for server-side authentication.
-  // In a real production environment, you would use a more secure method
-  // like environment variables or a secret manager to store credentials.
-  const serviceAccount = {
-    projectId: firebaseConfig.projectId,
-    // The client_email and private_key are not needed for this simplified setup
-    // as App Hosting provides them securely in the environment.
-    // However, the `cert` function expects these fields to exist.
-    client_email: `firebase-adminsdk-h1y33@${firebaseConfig.projectId}.iam.gserviceaccount.com`,
-    private_key: '-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----\n',
-  };
-
-  return initializeApp({
-    credential: cert(serviceAccount),
-    projectId: firebaseConfig.projectId,
-  });
+  // By calling initializeApp without arguments, the SDK will automatically
+  // use the GOOGLE_APPLICATION_CREDENTIALS environment variable or other
+  // default credential discovery logic to find the service account credentials.
+  // This is the recommended approach for environments like Cloud Run, Cloud Functions, and App Hosting.
+  return initializeApp();
 }
