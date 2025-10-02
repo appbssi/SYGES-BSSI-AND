@@ -44,7 +44,7 @@ type FormValues = {
 
 
 export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
-  const { control, handleSubmit, reset, getValues, formState: { isDirty, isSubmitSuccessful } } = useForm<FormValues>();
+  const { control, reset, getValues, formState: { errors } } = useForm<FormValues>();
   
   const [state, formAction, isPending] = useActionState(createMissionAction, initialState);
 
@@ -83,27 +83,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
             Saisissez les informations de la nouvelle mission.
           </DialogDescription>
         </DialogHeader>
-        <form action={(formData) => {
-            const nameInput = (formData.get('name') as string) || '';
-            const descriptionInput = (formData.get('description') as string) || '';
-            const startDateInput = (document.querySelector('input[name="startDate"]') as HTMLInputElement)?.value;
-            const endDateInput = (document.querySelector('input[name="endDate"]') as HTMLInputElement)?.value;
-            
-            const newFormData = new FormData();
-            newFormData.append('name', nameInput);
-            newFormData.append('description', descriptionInput);
-            if (startDateInput) newFormData.append('startDate', startDateInput);
-            if (endDateInput) newFormData.append('endDate', endDateInput);
-
-            formAction(newFormData);
-        }} onSubmit={handleSubmit((data) => {
-             const newFormData = new FormData();
-              newFormData.append('name', data.name);
-              newFormData.append('description', data.description);
-              newFormData.append('startDate', data.startDate.toISOString());
-              newFormData.append('endDate', data.endDate.toISOString());
-              formAction(newFormData);
-        })} className="grid gap-4 py-4">
+        <form action={formAction} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Nom</Label>
             <div className="col-span-3">
@@ -152,6 +132,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                                 initialFocus
                                 locale={fr}
                             />
+                            <input type="hidden" name="startDate" value={field.value?.toISOString()}/>
                             </PopoverContent>
                         </Popover>
                     )}
@@ -180,6 +161,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                                 initialFocus
                                 locale={fr}
                             />
+                             <input type="hidden" name="endDate" value={value?.toISOString()}/>
                             </PopoverContent>
                         </Popover>
                     )}
