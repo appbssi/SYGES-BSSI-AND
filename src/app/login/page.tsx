@@ -55,7 +55,7 @@ export default function LoginPage() {
               <Input
                 id="username"
                 type="text"
-                placeholder="bssi"
+                placeholder="login"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
