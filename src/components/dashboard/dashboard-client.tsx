@@ -25,6 +25,8 @@ import { fr } from "date-fns/locale";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Badge } from "../ui/badge";
 
 export function DashboardClient() {
   const [isClient, setIsClient] = useState(false);
@@ -117,11 +119,26 @@ export function DashboardClient() {
                               <TableCell className="font-medium">{mission.name}</TableCell>
                               <TableCell>
                                   {mission.agents.length > 0 ? (
-                                      <div className="flex flex-wrap gap-1">
-                                      {mission.agents.map(agent => (
-                                          <span key={agent.id} className="text-sm">{agent.firstName} {agent.lastName}</span>
-                                      )).reduce((prev, curr, i) => [prev, <span key={`sep-${i}`}>, </span>, curr] as any)}
-                                      </div>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Badge variant="outline" className="cursor-pointer">
+                                          <Users className="mr-2 h-3 w-3" />
+                                          {mission.agents.length} agent(s)
+                                        </Badge>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto">
+                                        <div className="space-y-2">
+                                          <h4 className="font-medium leading-none">Agents Assignés</h4>
+                                          <div className="grid gap-2">
+                                            {mission.agents.map(agent => agent && (
+                                              <div key={agent.id} className="flex items-center gap-2">
+                                                <p>{agent.firstName} {agent.lastName} ({agent.rank})</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
                                   ) : "N/A"}
                               </TableCell>
                               <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>
