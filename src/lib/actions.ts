@@ -53,7 +53,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
   await addAgent(db, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
-  return { errors: {} };
+  return { errors: {}, message: 'success' };
 }
 
 export async function updateAgentAction(id: string, prevState: any, formData: FormData) {
@@ -79,7 +79,7 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
-  return { errors: {} };
+  return { errors: {}, message: 'success' };
 }
 
 export async function deleteAgentAction(id: string) {
@@ -131,7 +131,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
 
     revalidatePath('/missions');
     revalidatePath('/');
-    return { errors: {} };
+    return { errors: {}, message: 'success' };
 }
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
