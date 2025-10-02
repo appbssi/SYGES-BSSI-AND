@@ -66,10 +66,6 @@ export function DashboardClient({
     };
   }, [agents, missions, isClient]);
 
-  if (!isClient) {
-    return null;
-  }
-
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -93,33 +89,37 @@ export function DashboardClient({
             <CardDescription>Missions actuellement en cours.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Mission</TableHead>
-                        <TableHead>Agents</TableHead>
-                        <TableHead>Se termine le</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {stats.activeMissionsList.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Aucune mission active</TableCell></TableRow>}
-                    {stats.activeMissionsList.map(mission => (
-                        <TableRow key={mission.id}>
-                            <TableCell className="font-medium">{mission.name}</TableCell>
-                            <TableCell>
-                                {mission.agents.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1">
-                                    {mission.agents.map(agent => (
-                                        <span key={agent.id} className="text-sm">{agent.name}</span>
-                                    )).reduce((prev, curr, i) => [prev, <span key={`sep-${i}`}>, </span>, curr] as any)}
-                                    </div>
-                                ) : "N/A"}
-                            </TableCell>
-                            <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+             {isClient ? (
+              <Table>
+                  <TableHeader>
+                      <TableRow>
+                          <TableHead>Mission</TableHead>
+                          <TableHead>Agents</TableHead>
+                          <TableHead>Se termine le</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {stats.activeMissionsList.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Aucune mission active</TableCell></TableRow>}
+                      {stats.activeMissionsList.map(mission => (
+                          <TableRow key={mission.id}>
+                              <TableCell className="font-medium">{mission.name}</TableCell>
+                              <TableCell>
+                                  {mission.agents.length > 0 ? (
+                                      <div className="flex flex-wrap gap-1">
+                                      {mission.agents.map(agent => (
+                                          <span key={agent.id} className="text-sm">{agent.name}</span>
+                                      )).reduce((prev, curr, i) => [prev, <span key={`sep-${i}`}>, </span>, curr] as any)}
+                                      </div>
+                                  ) : "N/A"}
+                              </TableCell>
+                              <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center text-muted-foreground py-8">Chargement...</div>
+            )}
           </CardContent>
         </Card>
       </div>
