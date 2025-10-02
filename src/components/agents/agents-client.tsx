@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -190,8 +189,7 @@ export function AgentsClient() {
       </Card>
       <AgentForm 
         isOpen={isFormOpen} 
-        setIsOpen={setIsFormOpen} 
-        agent={null}
+        setIsOpen={setIsFormOpen}
       />
     </>
   );

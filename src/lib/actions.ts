@@ -1,4 +1,3 @@
-
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -9,68 +8,6 @@ import type { Mission } from "./types";
 
 // Initialize DB instance once per module
 const dbPromise = initializeAdminApp().then(app => getFirestore(app));
-
-// This function is currently causing authentication issues on the server.
-// It's temporarily disabled to allow agent creation.
-// async function isRegistrationNumberTaken(regNum: string, currentId?: string): Promise<boolean> {
-//     const db = await dbPromise;
-//     const agentsRef = db.collection('agents');
-//     const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
-//     if (snapshot.empty) {
-//         return false;
-//     }
-//     if (!currentId) {
-//         return true;
-//     }
-//     return snapshot.docs.some(doc => doc.id !== currentId);
-// }
-
-const agentSchema = z.object({
-  id: z.string().optional(),
-  firstName: z.string().min(1, "Le prénom est requis."),
-  lastName: z.string().min(1, "Le nom de famille est requis."),
-  registrationNumber: z.string().min(1, "Le matricule est requis."),
-  rank: z.string().min(1, "Le grade est requis."),
-  contactNumber: z.string().min(1, "Le numéro de contact est requis."),
-  address: z.string().min(1, "L'adresse est requise."),
-});
-
-
-export async function createAgentAction(prevState: any, formData: FormData) {
-    const db = await dbPromise;
-    const validatedFields = agentSchema.safeParse(Object.fromEntries(formData.entries()));
-
-    if (!validatedFields.success) {
-        return { errors: validatedFields.error.flatten().fieldErrors };
-    }
-    
-    // const { registrationNumber } = validatedFields.data;
-
-    // Temporarily disable registration number check due to server auth issues.
-    // const isTaken = await isRegistrationNumberTaken(registrationNumber);
-    // if (isTaken) {
-    //     return {
-    //         errors: {
-    //             registrationNumber: ["Ce matricule est déjà utilisé."],
-    //         },
-    //     };
-    // }
-
-    try {
-        const { id, ...agentData } = validatedFields.data;
-        await db.collection('agents').add({
-            ...agentData,
-            status: 'available' // Default status
-        });
-        revalidatePath('/agents');
-        revalidatePath('/');
-        return { errors: {}, message: 'success' };
-    } catch (error) {
-        console.error("Error creating agent:", error);
-        return { errors: {}, message: `Erreur serveur: Impossible de créer l'agent.` };
-    }
-}
-
 
 const missionSchema = z.object({
     name: z.string().min(1, "Le nom est requis."),
