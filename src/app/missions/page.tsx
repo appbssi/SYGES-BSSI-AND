@@ -1,14 +1,14 @@
 import { MainLayout } from "@/components/layout/main-layout";
 import { getAgents, getMissions } from "@/lib/data";
-import { DashboardClient } from "@/components/dashboard/dashboard-client";
+import { MissionsClient } from "@/components/missions/missions-client";
 
-export default function DashboardPage() {
+export default function MissionsPage() {
   const agents = getAgents();
   const missions = getMissions();
 
   return (
     <MainLayout>
-      <DashboardClient agents={agents} missions={missions} />
+      <MissionsClient initialAgents={agents} initialMissions={missions} />
     </MainLayout>
   );
 }
