@@ -4,19 +4,18 @@ import {
   collection,
   doc,
   type Firestore,
+  addDoc,
+  setDoc,
+  deleteDoc,
 } from 'firebase/firestore';
-import {
-  addDocumentNonBlocking,
-  deleteDocumentNonBlocking,
-  setDocumentNonBlocking,
-} from '@/firebase';
 import type { Agent } from '@/lib/types';
 
 export const agentsCollection = (db: Firestore) => collection(db, 'agents');
 export const agentDoc = (db: Firestore, id: string) => doc(db, 'agents', id);
 
 export function addAgent(db: Firestore, agent: Omit<Agent, 'id'>) {
-  return addDocumentNonBlocking(agentsCollection(db), agent);
+  // For server actions, we want to await. Client-side can be non-blocking.
+  return addDoc(agentsCollection(db), agent);
 }
 
 export function updateAgent(
@@ -24,9 +23,9 @@ export function updateAgent(
   id: string,
   agent: Partial<Omit<Agent, 'id'>>
 ) {
-  return setDocumentNonBlocking(agentDoc(db, id), agent, { merge: true });
+  return setDoc(agentDoc(db, id), agent, { merge: true });
 }
 
 export function deleteAgent(db: Firestore, id: string) {
-  return deleteDocumentNonBlocking(agentDoc(db, id));
+  return deleteDoc(agentDoc(db, id));
 }

@@ -4,19 +4,17 @@ import {
   collection,
   doc,
   type Firestore,
+  addDoc,
+  setDoc,
+  deleteDoc
 } from 'firebase/firestore';
-import {
-  addDocumentNonBlocking,
-  deleteDocumentNonBlocking,
-  setDocumentNonBlocking,
-} from '@/firebase';
 import type { Mission } from '@/lib/types';
 
 export const missionsCollection = (db: Firestore) => collection(db, 'missions');
 export const missionDoc = (db: Firestore, id: string) => doc(db, 'missions', id);
 
-export function addMission(db: Firestore, mission: Omit<Mission, 'id'>) {
-  return addDocumentNonBlocking(missionsCollection(db), mission);
+export function addMission(db: Firestore, mission: Omit<Mission, 'id' | 'agentIds'> & { agentIds: string[] }) {
+    return addDoc(missionsCollection(db), mission);
 }
 
 export function updateMission(
@@ -24,9 +22,9 @@ export function updateMission(
   id: string,
   mission: Partial<Omit<Mission, 'id'>>
 ) {
-  return setDocumentNonBlocking(missionDoc(db, id), mission, { merge: true });
+  return setDoc(missionDoc(db, id), mission, { merge: true });
 }
 
-export function deleteMission(db: Firestore, id: string) {
-  return deleteDocumentNonBlocking(missionDoc(db, id));
+export async function deleteMission(db: Firestore, id: string) {
+  return deleteDoc(missionDoc(db, id));
 }

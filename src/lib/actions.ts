@@ -5,10 +5,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
-import { addAgent, updateAgent, deleteAgent, agentsCollection } from "@/firebase/firestore/agents";
+import { addAgent, updateAgent, deleteAgent } from "@/firebase/firestore/agents";
 import { addMission, updateMission, deleteMission } from "@/firebase/firestore/missions";
-import type { Agent, Mission } from "./types";
-import { getAuth } from "firebase-admin/auth";
+import type { Mission } from "./types";
 
 const agentSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
@@ -51,7 +50,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
 
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  addAgent(db, validatedFields.data);
+  await addAgent(db, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   return {};
@@ -75,7 +74,7 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
 
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  updateAgent(db, id, validatedFields.data);
+  await updateAgent(db, id, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
@@ -97,7 +96,7 @@ export async function deleteAgentAction(id: string) {
   });
   await batch.commit();
 
-  deleteAgent(db, id);
+  await deleteAgent(db, id);
 
   revalidatePath("/agents");
   revalidatePath("/");
@@ -124,7 +123,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
     }
     const adminApp = await initializeAdminApp();
     const db = getFirestore(adminApp);
-    addMission(db, {
+    await addMission(db, {
         ...validatedFields.data,
         agentIds: [], // Start with no agents assigned
     });
@@ -141,11 +140,14 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
     const batch = db.batch();
 
     assignments.forEach(mission => {
-        if (mission.id) {
+        if (mission.id && mission.agentIds) {
             const missionRef = db.collection('missions').doc(mission.id);
-            batch.update(missionRef, { agentIds: mission.agentIds as string[], notes: mission.notes });
+            batch.update(missionRef, { agentIds: mission.agentIds });
         }
     });
+    
+    // This part seems to be for the AI feature which isn't fully implemented with UI yet.
+    // I'll keep the logic but the UI doesn't seem to use unassignedMissions currently.
     unassignedMissions.forEach(missionId => {
         const missionRef = db.collection('missions').doc(missionId);
         batch.update(missionRef, { agentIds: [] });
@@ -161,7 +163,7 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
 export async function deleteMissionAction(id: string) {
   const adminApp = await initializeAdminApp();
   const db = getFirestore(adminApp);
-  deleteMission(db, id);
+  await deleteMission(db, id);
   revalidatePath("/missions");
   revalidatePath("/");
 }

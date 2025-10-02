@@ -98,7 +98,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     };
     setIsSaving(true);
 
-    // This logic needs to merge new assignments with existing ones
     const missionsToUpdate: Partial<Mission>[] = Object.entries(assignments).map(([missionId, agentId]) => {
         const mission = missions.find(m => m.id === missionId);
         if (!mission) return null;
@@ -140,7 +139,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
                             </div>
                             <div>
                                 <Label htmlFor={`assign-${mission.id}`} className="sr-only">Assigner Agent</Label>
-                                <Select onValueChange={(agentId) => handleAssignmentChange(mission.id, agentId)}>
+                                <Select onValueChange={(agentId) => handleAssignmentChange(mission.id, agentId)} value={assignments[mission.id] || ""}>
                                     <SelectTrigger id={`assign-${mission.id}`} className="w-full">
                                         <SelectValue placeholder="Sélectionner un agent..." />
                                     </SelectTrigger>

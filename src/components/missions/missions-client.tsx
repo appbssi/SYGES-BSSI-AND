@@ -153,7 +153,7 @@ export function MissionsClient() {
         newAgentIds = [...mission.agentIds, agentId];
       }
       
-      await saveMissionAssignments([{ id: missionId, agentIds: newAgentIds } as Mission], []);
+      await saveMissionAssignments([{ id: missionId, agentIds: newAgentIds }], []);
       toast({
           title: "Assignation Mise à Jour",
           description: "La liste des agents pour la mission a été mise à jour."
