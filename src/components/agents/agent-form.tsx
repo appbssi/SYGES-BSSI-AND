@@ -34,7 +34,7 @@ const agentSchema = z.object({
   lastName: z.string().min(1, "Le nom est requis."),
   registrationNumber: z.string().min(1, "Le matricule est requis."),
   rank: z.string().min(1, "Le grade est requis."),
-  contactNumber: z.string().length(10, "Le contact doit avoir exactement 10 caractères."),
+  contactNumber: z.string().length(10, "Le contact doit avoir exactement 10 chiffres.").regex(/^\d+$/, "Le contact ne doit contenir que des chiffres."),
   address: z.string().min(1, "L'adresse est requise."),
 });
 
