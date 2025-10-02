@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { useForm } from "react-hook-form";
 import type { Agent } from "@/lib/types";
 import {
@@ -34,7 +34,7 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
   
   const action = agent ? updateAgentAction.bind(null, agent.id) : createAgentAction;
-  const [state, dispatch] = useFormState(action, initialState);
+  const [state, dispatch] = useActionState(action, initialState);
 
   const { toast } = useToast();
 

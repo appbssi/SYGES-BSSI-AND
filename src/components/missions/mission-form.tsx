@@ -1,8 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { useFormState } from "react-dom";
+import { useEffect, useState, useActionState } from "react";
 import { useForm } from "react-hook-form";
 import type { Mission } from "@/lib/types";
 import {
@@ -39,7 +38,7 @@ const initialState = {
 export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
   const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting, errors } } = useForm();
   const formAction = mission ? (() => {}) : createMissionAction; // No update action for now
-  const [state, dispatch] = useFormState(formAction, initialState);
+  const [state, dispatch] = useActionState(formAction, initialState);
   const { toast } = useToast();
     const [defaultStartDate, setDefaultStartDate] = useState(new Date());
     const [defaultEndDate, setDefaultEndDate] = useState(new Date());
