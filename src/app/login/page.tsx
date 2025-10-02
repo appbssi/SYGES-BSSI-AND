@@ -41,12 +41,12 @@ export default function LoginPage() {
           <div className="flex justify-center items-center mb-4">
             <div className="flex size-24 items-center justify-center rounded-lg bg-primary/10 text-primary-foreground">
                <Image 
-                src="https://picsum.photos/seed/logo/100/100" 
+                src="https://picsum.photos/seed/brigade-logo/100/100" 
                 alt="Logo eBrigade"
                 width={100}
                 height={100}
-                className="rounded-lg"
-                data-ai-hint="logo"
+                className="rounded-full"
+                data-ai-hint="brigade emblem"
               />
             </div>
           </div>
