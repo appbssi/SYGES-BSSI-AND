@@ -39,17 +39,17 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     setOptimizedResult(null);
 
     const now = new Date();
-    // For this demo, agent availability is simplified: they are available if not on an active mission.
+    // Pour cette démo, la disponibilité des agents est simplifiée : ils sont disponibles s'ils ne sont pas en mission active.
     const agentAvailability = agents.map(agent => ({
         agentId: agent.id,
-        availability: [{ start: now.toISOString(), end: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString() }], // Simplified: available for next year
+        availability: [{ start: now.toISOString(), end: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString() }], // Simplifié : disponible pour l'année prochaine
         skills: agent.skills,
         currentMissions: missions
             .filter(m => m.agentId === agent.id)
             .map(m => ({ missionId: m.id, start: m.startDate, end: m.endDate }))
     }));
 
-    const missionsToAssign = missions.filter(m => !m.agentId || getMissionStatus(m) !== 'Completed' );
+    const missionsToAssign = missions.filter(m => !m.agentId || getMissionStatus(m) !== 'Terminée' );
 
     try {
       const result = await optimizeMissionAssignment({
@@ -63,10 +63,10 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
         })),
       });
       setOptimizedResult(result);
-      toast({ title: "Optimization Complete", description: "Review the suggested assignments below." });
+      toast({ title: "Optimisation Terminée", description: "Veuillez examiner les assignations suggérées ci-dessous." });
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Optimization Failed", description: "Could not generate assignments." });
+      toast({ variant: "destructive", title: "Échec de l'Optimisation", description: "Impossible de générer les assignations." });
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +80,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     if (agent && mission) {
         try {
             const result = await suggestMissionNotes({
-                agentProfile: `Agent ${agent.name}, Rank: ${agent.rank}, Skills: ${agent.skills.join(', ')}`,
+                agentProfile: `Agent ${agent.name}, Grade: ${agent.rank}, Compétences: ${agent.skills.join(', ')}`,
                 missionDetails: `Mission ${mission.name}: ${mission.details}`
             });
             
@@ -92,7 +92,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
             }
 
         } catch (e) {
-            toast({ variant: 'destructive', title: 'Failed to suggest notes.' });
+            toast({ variant: 'destructive', title: 'Échec de la suggestion de notes.' });
         }
     }
     setSuggestedNotesLoading(null);
@@ -119,39 +119,39 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     await saveMissionAssignments(missionsToUpdate, optimizedResult.unassignedMissions);
     setIsSaving(false);
     setIsOpen(false);
-    toast({ title: 'Assignments Saved', description: 'The mission board has been updated.' });
+    toast({ title: 'Assignations Enregistrées', description: 'Le tableau des missions a été mis à jour.' });
   };
   
   const getMissionStatus = (mission: Mission) => {
     const now = new Date();
-    if (new Date(mission.endDate) < now) return "Completed";
-    return "Pending";
+    if (new Date(mission.endDate) < now) return "Terminée";
+    return "En attente";
   }
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-4xl h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Intelligent Mission Assignment</DialogTitle>
+          <DialogTitle>Assignation Intelligente de Mission</DialogTitle>
           <DialogDescription>
-            Use AI to find the optimal assignment for each mission based on agent skills and availability.
+            Utilisez l'IA pour trouver l'assignation optimale pour chaque mission en fonction des compétences et de la disponibilité des agents.
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 min-h-0">
           {!optimizedResult && (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <BrainCircuit className="w-16 h-16 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-semibold">Ready to Optimize</h3>
-              <p className="text-muted-foreground mb-6">Click the button to start the AI-powered assignment process.</p>
+              <h3 className="text-xl font-semibold">Prêt à Optimiser</h3>
+              <p className="text-muted-foreground mb-6">Cliquez sur le bouton pour lancer le processus d'assignation assisté par l'IA.</p>
               <Button onClick={handleOptimize} disabled={isLoading}>
-                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Optimizing...</> : "Optimize Assignments"}
+                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Optimisation en cours...</> : "Optimiser les Assignations"}
               </Button>
             </div>
           )}
           {optimizedResult && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
               <div className="md:col-span-2 flex flex-col">
-                <h3 className="font-semibold mb-2">Suggested Assignments ({optimizedResult.assignments.length})</h3>
+                <h3 className="font-semibold mb-2">Assignations Suggérées ({optimizedResult.assignments.length})</h3>
                 <ScrollArea className="flex-1 border rounded-lg p-4">
                   <div className="space-y-4">
                     {optimizedResult.assignments.map(assignment => {
@@ -163,14 +163,14 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
                           <p className="text-sm text-muted-foreground">{mission?.details}</p>
                           <div className="mt-2">
                              <Textarea 
-                                placeholder="Assignment notes..." 
+                                placeholder="Notes d'assignation..." 
                                 value={assignment.notes || ''}
                                 onChange={(e) => handleNotesChange(assignment.missionId, e.target.value)}
                                 className="text-sm"
                              />
                              <Button size="sm" variant="ghost" className="mt-1" onClick={() => handleNoteSuggestion(assignment.missionId, assignment.agentId)} disabled={!!suggestedNotesLoading}>
                                 {suggestedNotesLoading === assignment.missionId ? <Loader2 className="mr-2 h-3 w-3 animate-spin" /> : <Wand2 className="mr-2 h-3 w-3" />}
-                                Suggest Notes
+                                Suggérer des Notes
                              </Button>
                           </div>
                         </div>
@@ -180,14 +180,14 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
                 </ScrollArea>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-semibold mb-2">Unassigned Missions ({optimizedResult.unassignedMissions.length})</h3>
+                <h3 className="font-semibold mb-2">Missions Non Assignées ({optimizedResult.unassignedMissions.length})</h3>
                  <ScrollArea className="flex-1 border rounded-lg p-4 bg-muted/50">
                    <div className="space-y-2">
                     {optimizedResult.unassignedMissions.map(missionId => {
                         const mission = missions.find(m => m.id === missionId);
                         return <div key={missionId} className="p-2 bg-card rounded text-sm text-muted-foreground">{mission?.name}</div>
                     })}
-                    {optimizedResult.unassignedMissions.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">All missions assigned!</p>}
+                    {optimizedResult.unassignedMissions.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Toutes les missions sont assignées !</p>}
                    </div>
                  </ScrollArea>
               </div>
@@ -195,9 +195,9 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
           )}
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
           <Button type="button" onClick={handleSaveAssignments} disabled={!optimizedResult || isSaving}>
-            {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : <><Save className="mr-2 h-4 w-4"/> Save Assignments</>}
+            {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enregistrement...</> : <><Save className="mr-2 h-4 w-4"/> Enregistrer les Assignations</>}
           </Button>
         </DialogFooter>
       </DialogContent>

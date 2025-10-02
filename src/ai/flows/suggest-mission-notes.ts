@@ -1,24 +1,24 @@
 'use server';
 
 /**
- * @fileOverview An AI agent to suggest mission notes based on agent profile and mission details.
+ * @fileOverview Un agent IA pour suggérer des notes de mission basées sur le profil de l'agent et les détails de la mission.
  *
- * - suggestMissionNotes - A function that handles the suggestion of mission notes.
- * - SuggestMissionNotesInput - The input type for the suggestMissionNotes function.
- * - SuggestMissionNotesOutput - The return type for the suggestMissionNotes function.
+ * - suggestMissionNotes - Une fonction qui gère la suggestion de notes de mission.
+ * - SuggestMissionNotesInput - Le type d'entrée pour la fonction suggestMissionNotes.
+ * - SuggestMissionNotesOutput - Le type de retour pour la fonction suggestMissionNotes.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestMissionNotesInputSchema = z.object({
-  agentProfile: z.string().describe('The profile of the agent, including their skills, experience, and past performance.'),
-  missionDetails: z.string().describe('The details of the mission, including objectives, location, timeline, and potential risks.'),
+  agentProfile: z.string().describe("Le profil de l'agent, y compris ses compétences, son expérience et ses performances passées."),
+  missionDetails: z.string().describe("Les détails de la mission, y compris les objectifs, le lieu, le calendrier et les risques potentiels."),
 });
 export type SuggestMissionNotesInput = z.infer<typeof SuggestMissionNotesInputSchema>;
 
 const SuggestMissionNotesOutputSchema = z.object({
-  suggestedNotes: z.string().describe('Suggested notes or talking points for the mission assignment, tailored to the agent and mission.'),
+  suggestedNotes: z.string().describe("Notes ou points de discussion suggérés pour l'assignation de la mission, adaptés à l'agent et à la mission."),
 });
 export type SuggestMissionNotesOutput = z.infer<typeof SuggestMissionNotesOutputSchema>;
 
@@ -30,13 +30,13 @@ const prompt = ai.definePrompt({
   name: 'suggestMissionNotesPrompt',
   input: {schema: SuggestMissionNotesInputSchema},
   output: {schema: SuggestMissionNotesOutputSchema},
-  prompt: `You are an expert mission briefing assistant. Based on the agent's profile and the mission details, suggest notes or talking points for the mission assignment.
+  prompt: `Vous êtes un expert en briefing de mission. En vous basant sur le profil de l'agent et les détails de la mission, suggérez des notes ou des points de discussion pour l'assignation de la mission. La réponse doit être en français.
 
-Agent Profile: {{{agentProfile}}}
+Profil de l'agent : {{{agentProfile}}}
 
-Mission Details: {{{missionDetails}}}
+Détails de la mission : {{{missionDetails}}}
 
-Suggested Notes:`,
+Notes suggérées :`,
 });
 
 const suggestMissionNotesFlow = ai.defineFlow(

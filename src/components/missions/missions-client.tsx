@@ -36,8 +36,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { deleteMissionAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
+import { fr } from "date-fns/locale";
 
-type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Agent | null, status: "Active" | "Upcoming" | "Completed" };
+type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Agent | null, status: "Active" | "À venir" | "Terminée" };
 
 export function MissionsClient({
   initialAgents,
@@ -51,12 +52,12 @@ export function MissionsClient({
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
 
-  const getMissionStatus = (mission: Mission) => {
+  const getMissionStatus = (mission: Mission): "Active" | "À venir" | "Terminée" => {
     const now = new Date();
     const start = new Date(mission.startDate);
     const end = new Date(mission.endDate);
-    if (end < now) return "Completed";
-    if (start > now) return "Upcoming";
+    if (end < now) return "Terminée";
+    if (start > now) return "À venir";
     return "Active";
   }
 
@@ -70,16 +71,16 @@ export function MissionsClient({
   
   const handleExport = () => {
     const dataToExport = missionsWithAgents.map(m => ({
-        mission_name: m.name,
-        agent_name: m.agent?.name || "Unassigned",
-        agent_registration: m.agent?.registrationNumber || "N/A",
-        start_date: m.startDate,
-        end_date: m.endDate,
-        status: m.status,
-        priority: m.priority,
-        required_skills: m.requiredSkills.join(' | '),
+        nom_mission: m.name,
+        nom_agent: m.agent?.name || "Non assignée",
+        matricule_agent: m.agent?.registrationNumber || "N/A",
+        date_debut: m.startDate,
+        date_fin: m.endDate,
+        statut: m.status,
+        priorite: m.priority,
+        competences_requises: m.requiredSkills.join(' | '),
     }));
-    exportToCsv(dataToExport, "ebigade_missions.csv");
+    exportToCsv(dataToExport, "ebrigade_missions.csv");
   };
 
   const handleDelete = (mission: Mission) => {
@@ -102,11 +103,11 @@ export function MissionsClient({
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Mission Log</h2>
+        <h2 className="text-2xl font-bold">Journal de Mission</h2>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Export CSV</Button>
+            <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
             <Button onClick={() => setIsAssignmentDialogOpen(true)}>
-                <BrainCircuit className="mr-2" /> Optimize Assignments
+                <BrainCircuit className="mr-2" /> Optimiser les Assignations
             </Button>
         </div>
       </div>
@@ -116,10 +117,10 @@ export function MissionsClient({
             <TableHeader>
               <TableRow>
                 <TableHead>Mission</TableHead>
-                <TableHead>Assigned Agent</TableHead>
-                <TableHead>Timeline</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
+                <TableHead>Agent Assigné</TableHead>
+                <TableHead>Calendrier</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Priorité</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -140,19 +141,19 @@ export function MissionsClient({
                         <span>{mission.agent.name}</span>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">Unassigned</span>
+                      <span className="text-muted-foreground">Non assignée</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(mission.startDate), "dd/MM/yy")} -{" "}
-                    {format(new Date(mission.endDate), "dd/MM/yy")}
+                    {format(new Date(mission.startDate), "dd/MM/yy", { locale: fr })} -{" "}
+                    {format(new Date(mission.endDate), "dd/MM/yy", { locale: fr })}
                   </TableCell>
                   <TableCell>
                      <Badge
                         variant={mission.status === 'Active' ? 'destructive' : 'secondary'}
                         className={
                             mission.status === 'Active' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/80 dark:text-blue-200' : 
-                            mission.status === 'Completed' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
+                            mission.status === 'Terminée' ? 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' :
                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/80 dark:text-yellow-200'
                         }
                      >
@@ -191,14 +192,14 @@ export function MissionsClient({
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete mission {selectedMission?.name}.
+              Cette action est irréversible. Elle supprimera définitivement la mission {selectedMission?.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

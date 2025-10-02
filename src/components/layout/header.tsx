@@ -19,7 +19,7 @@ export function AppHeader() {
       <h1 className="text-xl font-semibold">{getTitle(pathname)}</h1>
       <div className="ml-auto flex items-center gap-4">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="https://picsum.photos/seed/user/100/100" alt="User Avatar" data-ai-hint="user avatar" />
+          <AvatarImage src="https://picsum.photos/seed/user/100/100" alt="Avatar de l'utilisateur" data-ai-hint="user avatar" />
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
       </div>

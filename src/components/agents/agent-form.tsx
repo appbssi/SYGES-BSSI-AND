@@ -63,11 +63,11 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   
   useEffect(() => {
     if (state?.errors && Object.keys(state.errors).length > 0) {
-      // Errors are now displayed below inputs
+      // Les erreurs sont maintenant affichées sous les champs
     } else if (!isSubmitting && isOpen && !state?.errors) {
        toast({
-        title: `Agent ${agent ? 'Updated' : 'Created'}`,
-        description: `Agent ${agent?.name || ''} has been successfully ${agent ? 'updated' : 'created'}.`,
+        title: `Agent ${agent ? 'Mis à Jour' : 'Créé'}`,
+        description: `L'agent ${agent?.name || ''} a été ${agent ? 'mis à jour' : 'créé'} avec succès.`,
       });
       setIsOpen(false);
     }
@@ -78,28 +78,28 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{agent ? "Edit Agent" : "Add New Agent"}</DialogTitle>
+          <DialogTitle>{agent ? "Modifier l'Agent" : "Ajouter un Nouvel Agent"}</DialogTitle>
           <DialogDescription>
-            {agent ? "Update the details for this agent." : "Enter the details for the new agent."}
+            {agent ? "Mettez à jour les informations de cet agent." : "Saisissez les informations du nouvel agent."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onFormSubmit)} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Name</Label>
+            <Label htmlFor="name" className="text-right">Nom</Label>
             <div className="col-span-3">
               <Input id="name" {...register("name")} className="w-full" />
               {state.errors?.name && <p className="text-red-500 text-xs mt-1">{state.errors.name[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="registrationNumber" className="text-right">Registration</Label>
+            <Label htmlFor="registrationNumber" className="text-right">Matricule</Label>
              <div className="col-span-3">
               <Input id="registrationNumber" {...register("registrationNumber")} className="w-full" />
                {state.errors?.registrationNumber && <p className="text-red-500 text-xs mt-1">{state.errors.registrationNumber[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="rank" className="text-right">Rank</Label>
+            <Label htmlFor="rank" className="text-right">Grade</Label>
             <div className="col-span-3">
               <Input id="rank" {...register("rank")} className="w-full" />
               {state.errors?.rank && <p className="text-red-500 text-xs mt-1">{state.errors.rank[0]}</p>}
@@ -113,22 +113,22 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="address" className="text-right">Address</Label>
+            <Label htmlFor="address" className="text-right">Adresse</Label>
             <div className="col-span-3">
               <Textarea id="address" {...register("address")} className="w-full" />
               {state.errors?.address && <p className="text-red-500 text-xs mt-1">{state.errors.address[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="skills" className="text-right">Skills</Label>
+            <Label htmlFor="skills" className="text-right">Compétences</Label>
             <div className="col-span-3">
-              <Input id="skills" {...register("skills")} placeholder="Comma-separated skills" className="w-full" />
+              <Input id="skills" {...register("skills")} placeholder="Compétences séparées par des virgules" className="w-full" />
               {state.errors?.skills && <p className="text-red-500 text-xs mt-1">{state.errors.skills[0]}</p>}
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Agent'}</Button>
+            <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Enregistrement...' : 'Enregistrer'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

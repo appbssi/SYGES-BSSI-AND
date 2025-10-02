@@ -28,6 +28,7 @@ import {
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { format, getMonth } from "date-fns";
 import Image from "next/image";
+import { fr } from "date-fns/locale";
 
 export function DashboardClient({
   agents,
@@ -64,20 +65,11 @@ export function DashboardClient({
         const month = getMonth(new Date(mission.startDate));
         monthCounts[month]++;
     });
-    return [
-        { month: "Jan", missions: monthCounts[0] },
-        { month: "Feb", missions: monthCounts[1] },
-        { month: "Mar", missions: monthCounts[2] },
-        { month: "Apr", missions: monthCounts[3] },
-        { month: "May", missions: monthCounts[4] },
-        { month: "Jun", missions: monthCounts[5] },
-        { month: "Jul", missions: monthCounts[6] },
-        { month: "Aug", missions: monthCounts[7] },
-        { month: "Sep", missions: monthCounts[8] },
-        { month: "Oct", missions: monthCounts[9] },
-        { month: "Nov", missions: monthCounts[10] },
-        { month: "Dec", missions: monthCounts[11] },
-    ];
+    const months = ["Janv", "Févr", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
+    return months.map((month, index) => ({
+        month,
+        missions: monthCounts[index]
+    }));
   }, [missions]);
 
   const chartConfig = {
@@ -90,15 +82,15 @@ export function DashboardClient({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Agents" value={stats.totalAgents} icon={Users} />
+        <StatCard title="Agents (Total)" value={stats.totalAgents} icon={Users} />
         <StatCard
-          title="Available Agents"
+          title="Agents Disponibles"
           value={stats.availableAgents}
           icon={UserCheck}
         />
-        <StatCard title="Busy Agents" value={stats.busyAgents} icon={UserX} />
+        <StatCard title="Agents Occupés" value={stats.busyAgents} icon={UserX} />
         <StatCard
-          title="Active Missions"
+          title="Missions Actives"
           value={stats.activeMissionsCount}
           icon={Target}
         />
@@ -106,8 +98,8 @@ export function DashboardClient({
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>Missions Overview</CardTitle>
-            <CardDescription>Number of missions started per month this year.</CardDescription>
+            <CardTitle>Aperçu des Missions</CardTitle>
+            <CardDescription>Nombre de missions commencées par mois cette année.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
              <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -118,7 +110,7 @@ export function DashboardClient({
                         tickLine={false}
                         tickMargin={10}
                         axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
+                        tickFormatter={(value) => value.slice(0, 4)}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="missions" fill="var(--color-missions)" radius={4} />
@@ -128,8 +120,8 @@ export function DashboardClient({
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Active Missions</CardTitle>
-            <CardDescription>Missions currently in progress.</CardDescription>
+            <CardTitle>Missions Actives</CardTitle>
+            <CardDescription>Missions actuellement en cours.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -137,11 +129,11 @@ export function DashboardClient({
                     <TableRow>
                         <TableHead>Mission</TableHead>
                         <TableHead>Agent</TableHead>
-                        <TableHead>Ends</TableHead>
+                        <TableHead>Se termine le</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {stats.activeMissionsList.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No active missions</TableCell></TableRow>}
+                    {stats.activeMissionsList.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Aucune mission active</TableCell></TableRow>}
                     {stats.activeMissionsList.map(mission => (
                         <TableRow key={mission.id}>
                             <TableCell className="font-medium">{mission.name}</TableCell>
@@ -153,7 +145,7 @@ export function DashboardClient({
                                     </div>
                                 ) : "N/A"}
                             </TableCell>
-                            <TableCell>{format(new Date(mission.endDate), 'MMM d, yyyy')}</TableCell>
+                            <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

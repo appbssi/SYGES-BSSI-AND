@@ -32,11 +32,11 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={isActive("/")}
-              tooltip={{ children: "Dashboard" }}
+              tooltip={{ children: "Tableau de Bord" }}
             >
               <Link href="/">
                 <Home />
-                <span>Dashboard</span>
+                <span>Tableau de Bord</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -36,7 +36,7 @@ import { deleteAgentAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 
-type AgentWithStatus = Agent & { status: "Available" | "Busy" };
+type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" };
 
 export function AgentsClient({
   initialAgents,
@@ -58,7 +58,7 @@ export function AgentsClient({
         new Date(m.startDate) <= now &&
         new Date(m.endDate) >= now
     );
-    return hasActiveMission ? "Busy" : "Available";
+    return hasActiveMission ? "Occupé" : "Disponible";
   };
 
   const agentsWithStatus: AgentWithStatus[] = initialAgents.map((agent) => ({
@@ -85,8 +85,8 @@ export function AgentsClient({
     if (selectedAgent) {
       await deleteAgentAction(selectedAgent.id);
       toast({
-        title: "Agent Deleted",
-        description: `Agent ${selectedAgent.name} has been successfully deleted.`,
+        title: "Agent Supprimé",
+        description: `L'agent ${selectedAgent.name} a été supprimé avec succès.`,
       });
       setIsAlertOpen(false);
       setSelectedAgent(null);
@@ -94,17 +94,20 @@ export function AgentsClient({
   }
 
   const handleExport = () => {
-    const dataToExport = agentsWithStatus.map(({ id, avatar, ...rest }) => rest);
-    exportToCsv(dataToExport, "ebigade_agents.csv");
+    const dataToExport = agentsWithStatus.map(({ id, avatar, ...rest }) => ({
+      ...rest,
+      status: rest.status === "Disponible" ? "Disponible" : "Occupé",
+    }));
+    exportToCsv(dataToExport, "ebrigade_agents.csv");
   };
 
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Agent Roster</h2>
+        <h2 className="text-2xl font-bold">Liste des Agents</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Export CSV</Button>
-          <Button onClick={handleAddNew}><Plus className="mr-2" /> Add Agent</Button>
+          <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
+          <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
       <Card>
@@ -113,9 +116,9 @@ export function AgentsClient({
             <TableHeader>
               <TableRow>
                 <TableHead>Agent</TableHead>
-                <TableHead>Registration</TableHead>
-                <TableHead>Rank</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Matricule</TableHead>
+                <TableHead>Grade</TableHead>
+                <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -138,8 +141,8 @@ export function AgentsClient({
                   <TableCell>{agent.rank}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={agent.status === "Available" ? "secondary" : "destructive"}
-                      className={agent.status === "Available" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
+                      variant={agent.status === "Disponible" ? "secondary" : "destructive"}
+                      className={agent.status === "Disponible" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}
                     >
                       {agent.status}
                     </Badge>
@@ -153,10 +156,10 @@ export function AgentsClient({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => handleEdit(agent)}>
-                          <FilePenLine className="mr-2 h-4 w-4" /> Edit
+                          <FilePenLine className="mr-2 h-4 w-4" /> Modifier
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> Supprimer
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -177,14 +180,14 @@ export function AgentsClient({
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete agent {selectedAgent?.name} and unassign them from any missions.
+              Cette action est irréversible. Elle supprimera définitivement l'agent {selectedAgent?.name} et le désassignera de toutes ses missions.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

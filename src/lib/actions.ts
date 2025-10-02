@@ -6,11 +6,11 @@ import { addAgent, updateAgent, deleteAgent, addMission, updateMission, deleteMi
 import type { Agent, Mission } from "./types";
 
 const agentSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  registrationNumber: z.string().min(1, "Registration number is required"),
-  rank: z.string().min(1, "Rank is required"),
-  contact: z.string().min(1, "Contact is required"),
-  address: z.string().min(1, "Address is required"),
+  name: z.string().min(1, "Le nom est requis"),
+  registrationNumber: z.string().min(1, "Le matricule est requis"),
+  rank: z.string().min(1, "Le grade est requis"),
+  contact: z.string().min(1, "Le contact est requis"),
+  address: z.string().min(1, "L'adresse est requise"),
   skills: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
 });
 
@@ -26,7 +26,7 @@ export async function createAgentAction(formData: FormData) {
 
   if (isRegistrationNumberTaken(validatedFields.data.registrationNumber)) {
      return {
-      errors: { registrationNumber: ["This registration number is already taken."] },
+      errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
@@ -47,7 +47,7 @@ export async function updateAgentAction(id: string, formData: FormData) {
   
   if (isRegistrationNumberTaken(validatedFields.data.registrationNumber, id)) {
      return {
-      errors: { registrationNumber: ["This registration number is already taken."] },
+      errors: { registrationNumber: ["Ce matricule est déjà pris."] },
     };
   }
 
@@ -65,8 +65,8 @@ export async function deleteAgentAction(id: string) {
 }
 
 const missionSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    details: z.string().min(1, "Details are required"),
+    name: z.string().min(1, "Le nom est requis"),
+    details: z.string().min(1, "Les détails sont requis"),
     agentId: z.string().nullable(),
     startDate: z.string().datetime(),
     endDate: z.string().datetime(),
