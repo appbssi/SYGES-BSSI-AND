@@ -7,7 +7,11 @@ import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
 import type { Mission } from "./types";
 
-async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum: string, currentId?: string): Promise<boolean> {
+// Initialize DB instance once per module
+const dbPromise = initializeAdminApp().then(app => getFirestore(app));
+
+async function isRegistrationNumberTaken(regNum: string, currentId?: string): Promise<boolean> {
+    const db = await dbPromise;
     const agentsRef = db.collection('agents');
     const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
     if (snapshot.empty) {
@@ -16,7 +20,6 @@ async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum
     if (!currentId) {
         return true;
     }
-    // If we are updating, check if the found agent is a different one
     return snapshot.docs.some(doc => doc.id !== currentId);
 }
 
@@ -32,8 +35,7 @@ const agentSchema = z.object({
 
 
 export async function createAgentAction(prevState: any, formData: FormData) {
-    const db = await initializeAdminApp().then(app => getFirestore(app));
-
+    const db = await dbPromise;
     const validatedFields = agentSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -42,7 +44,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     
     const { registrationNumber } = validatedFields.data;
 
-    const isTaken = await isRegistrationNumberTaken(db, registrationNumber);
+    const isTaken = await isRegistrationNumberTaken(registrationNumber);
     if (isTaken) {
         return {
             errors: {
@@ -52,12 +54,17 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     }
 
     try {
-        await db.collection('agents').add(validatedFields.data);
+        const { id, ...agentData } = validatedFields.data;
+        await db.collection('agents').add({
+            ...agentData,
+            status: 'available' // Default status
+        });
         revalidatePath('/agents');
         revalidatePath('/');
         return { errors: {}, message: 'success' };
     } catch (error) {
-        return { errors: {}, message: `Erreur serveur: ${error}` };
+        console.error("Error creating agent:", error);
+        return { errors: {}, message: `Erreur serveur: Impossible de créer l'agent.` };
     }
 }
 
@@ -74,13 +81,14 @@ const missionSchema = z.object({
 
 
 export async function createMissionAction(prevState: any, formData: FormData) {
+    const db = await dbPromise;
     const rawData = Object.fromEntries(formData.entries());
     const validatedFields = missionSchema.safeParse(rawData);
 
     if (!validatedFields.success) {
         return { errors: validatedFields.error.flatten().fieldErrors };
     }
-    const db = getFirestore(await initializeAdminApp());
+    
     await db.collection('missions').add({
         ...validatedFields.data,
         agentIds: [],
@@ -92,8 +100,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
 }
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
-    const db = getFirestore(await initializeAdminApp());
-
+    const db = await dbPromise;
     const batch = db.batch();
 
     assignments.forEach(mission => {
@@ -116,7 +123,7 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
 }
 
 export async function deleteMissionAction(id: string) {
-  const db = getFirestore(await initializeAdminApp());
+  const db = await dbPromise;
   await db.collection('missions').doc(id).delete();
   revalidatePath("/missions");
   revalidatePath("/");
