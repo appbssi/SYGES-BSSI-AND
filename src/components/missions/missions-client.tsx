@@ -83,7 +83,6 @@ export function MissionsClient({
         date_debut: m.startDate,
         date_fin: m.endDate,
         statut: m.status,
-        priorite: m.priority,
         competences_requises: m.requiredSkills.join(' | '),
     }));
     exportToCsv(dataToExport, "ebrigade_missions.csv");
@@ -126,7 +125,6 @@ export function MissionsClient({
                 <TableHead>Agent Assigné</TableHead>
                 <TableHead>Calendrier</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead>Priorité</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -156,9 +154,6 @@ export function MissionsClient({
                      >
                         {mission.status}
                      </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">P-{mission.priority}</Badge>
                   </TableCell>
                    <TableCell className="text-right">
                     <DropdownMenu>
