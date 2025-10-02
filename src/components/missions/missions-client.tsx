@@ -83,7 +83,6 @@ export function MissionsClient({
         date_debut: m.startDate,
         date_fin: m.endDate,
         statut: m.status,
-        competences_requises: m.requiredSkills.join(' | '),
     }));
     exportToCsv(dataToExport, "ebrigade_missions.csv");
   };

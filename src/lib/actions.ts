@@ -11,7 +11,6 @@ const agentSchema = z.object({
   rank: z.string().min(1, "Le grade est requis"),
   contact: z.string().min(1, "Le contact est requis"),
   address: z.string().min(1, "L'adresse est requise"),
-  skills: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
 });
 
 export async function createAgentAction(formData: FormData) {
@@ -71,7 +70,6 @@ const missionSchema = z.object({
     startDate: z.string().datetime(),
     endDate: z.string().datetime(),
     priority: z.coerce.number().min(1).max(5),
-    requiredSkills: z.string().transform(val => val.split(',').map(s => s.trim()).filter(Boolean)),
     notes: z.string().optional(),
 });
 

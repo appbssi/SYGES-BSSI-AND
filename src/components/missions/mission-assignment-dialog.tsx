@@ -50,7 +50,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     const agentAvailability = agents.map(agent => ({
         agentId: agent.id,
         availability: [{ start: now.toISOString(), end: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString() }],
-        skills: agent.skills,
         currentMissions: missions
             .filter(m => m.agentId === agent.id && getMissionStatus(m) === 'Active')
             .map(m => ({ missionId: m.id, start: new Date(m.startDate).toISOString(), end: new Date(m.endDate).toISOString() }))
@@ -64,7 +63,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
         missions: missionsToAssign.map(m => ({
             missionId: m.id,
             priority: m.priority,
-            requiredSkills: m.requiredSkills,
             startTime: new Date(m.startDate).toISOString(),
             endTime: new Date(m.endDate).toISOString(),
         })),
@@ -87,7 +85,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     if (agent && mission) {
         try {
             const result = await suggestMissionNotes({
-                agentProfile: `Agent ${agent.name}, Grade: ${agent.rank}, Compétences: ${agent.skills.join(', ')}`,
+                agentProfile: `Agent ${agent.name}, Grade: ${agent.rank}`,
                 missionDetails: `Mission ${mission.name}: ${mission.details}`
             });
             
@@ -135,7 +133,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
         <DialogHeader>
           <DialogTitle>Assignation Intelligente de Mission</DialogTitle>
           <DialogDescription>
-            Utilisez l'IA pour trouver l'assignation optimale pour chaque mission en fonction des compétences et de la disponibilité des agents.
+            Utilisez l'IA pour trouver l'assignation optimale pour chaque mission en fonction de la disponibilité des agents.
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 min-h-0">

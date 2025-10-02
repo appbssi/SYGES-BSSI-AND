@@ -5,7 +5,6 @@ export type Agent = {
   rank: string;
   contact: string;
   address: string;
-  skills: string[];
 };
 
 export type Mission = {
@@ -16,6 +15,5 @@ export type Mission = {
   startDate: string;
   endDate: string;
   priority: number;
-  requiredSkills: string[];
   notes?: string;
 };

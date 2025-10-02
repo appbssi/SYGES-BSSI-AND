@@ -24,7 +24,6 @@ const OptimizeMissionAssignmentInputSchema = z.object({
           })
         )
         .describe("Plages de disponibilité de l'agent."),
-      skills: z.array(z.string()).describe("Liste des compétences de l'agent."),
       currentMissions: z
         .array(
           z.object({
@@ -40,7 +39,6 @@ const OptimizeMissionAssignmentInputSchema = z.object({
     z.object({
       missionId: z.string().describe("Identifiant unique de la mission."),
       priority: z.number().describe("Priorité de la mission (plus le nombre est élevé, plus la priorité est haute)."),
-      requiredSkills: z.array(z.string()).describe("Liste des compétences requises pour la mission."),
       startTime: z.string().datetime().describe("Heure de début de la mission."),
       endTime: z.string().datetime().describe("Heure de fin de la mission."),
     })
@@ -76,13 +74,12 @@ const prompt = ai.definePrompt({
   output: {schema: OptimizedMissionAssignmentOutputSchema},
   prompt: `Vous êtes un assistant IA spécialisé dans l'optimisation des assignations de missions pour une unité militaire.
 
-  Étant donné une liste d'agents avec leur disponibilité, leurs compétences et leurs missions actuelles, et une liste de missions avec leurs priorités, compétences requises et délais, votre tâche est de créer un calendrier d'assignation optimisé.
+  Étant donné une liste d'agents avec leur disponibilité et leurs missions actuelles, et une liste de missions avec leurs priorités et délais, votre tâche est de créer un calendrier d'assignation optimisé.
 
   Considérez les facteurs suivants :
   - Disponibilité de l'agent : Assurez-vous que les agents ne sont assignés à des missions que pendant leurs plages de disponibilité.
-  - Compétences de l'agent : Faites correspondre les agents avec les missions qui requièrent leurs compétences.
   - Priorité de la mission : Assignez les missions à plus haute priorité en premier.
-  - Évitement des conflits : Détectez et résolvez tout conflit de temps potentiel entre les missions assignées au même agent. Si les conflits sont inévitables, notez-les dans les notes d'assignation.
+  - Évitement des conflits : Détectez et résolvez tout conflit de temps potentiel between les missions assignées au même agent. Si les conflits sont inévitables, notez-les dans les notes d'assignation.
   
   La réponse doit être en français.
 
@@ -102,8 +99,8 @@ const prompt = ai.definePrompt({
   ],
   "unassignedMissions": ["mission789"]
   }
-  assignments : Un tableau d'objets, où chaque objet représente une assignation d'un agent à une mission. Chaque objet d'assignation doit inclure l'agentId, le missionId et toutes les notes pertinentes (par exemple, conflits potentiels, lacunes en matière de compétences).
-  unassignedMissions : Un tableau d'ID de mission qui n'ont pas pu être assignés en raison de conflits, d'un manque d'agents disponibles ou de non-concordance des compétences.
+  assignments : Un tableau d'objets, où chaque objet représente une assignation d'un agent à une mission. Chaque objet d'assignation doit inclure l'agentId, le missionId et toutes les notes pertinentes (par exemple, conflits potentiels).
+  unassignedMissions : Un tableau d'ID de mission qui n'ont pas pu être assignés en raison de conflits ou d'un manque d'agents disponibles.
   `,
 });
 

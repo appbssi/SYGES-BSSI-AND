@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const SuggestMissionNotesInputSchema = z.object({
-  agentProfile: z.string().describe("Le profil de l'agent, y compris ses compétences, son expérience et ses performances passées."),
+  agentProfile: z.string().describe("Le profil de l'agent, y compris son grade et son expérience passée."),
   missionDetails: z.string().describe("Les détails de la mission, y compris les objectifs, le lieu, le calendrier et les risques potentiels."),
 });
 export type SuggestMissionNotesInput = z.infer<typeof SuggestMissionNotesInputSchema>;

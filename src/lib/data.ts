@@ -4,19 +4,19 @@ import type { Agent, Mission } from './types';
 // For this example, we're using a static in-memory array.
 
 let agents: Omit<Agent, 'avatar'>[] = [
-  { id: '1', name: 'Jean Dupont', registrationNumber: 'A123', rank: 'Sergent', contact: '0612345678', address: '1 Rue de la Paix, Paris', skills: ['Reconnaissance', 'Démolition', 'Tir de précision'] },
-  { id: '2', name: 'Marie Curie', registrationNumber: 'B456', rank: 'Caporal', contact: '0687654321', address: '2 Avenue des Champs, Lyon', skills: ['Médecine', 'Communication', 'Logistique'] },
-  { id: '3', name: 'Pierre Martin', registrationNumber: 'C789', rank: 'Lieutenant', contact: '0712345678', address: '3 Place de la Bourse, Marseille', skills: ['Commandement', 'Stratégie', 'Reconnaissance'] },
-  { id: '4', name: 'Sophie Bernard', registrationNumber: 'D101', rank: 'Sergent-chef', contact: '0787654321', address: '4 Boulevard de la Liberté, Lille', skills: ['Ingénierie', 'Démolition', 'Combat rapproché'] },
-  { id: '5', name: 'Luc Moreau', registrationNumber: 'E112', rank: 'Adjudant', contact: '0611223344', address: '5 Rue Sainte-Catherine, Bordeaux', skills: ['Logistique', 'Transport', 'Mécanique'] },
+  { id: '1', name: 'Jean Dupont', registrationNumber: 'A123', rank: 'Sergent', contact: '0612345678', address: '1 Rue de la Paix, Paris' },
+  { id: '2', name: 'Marie Curie', registrationNumber: 'B456', rank: 'Caporal', contact: '0687654321', address: '2 Avenue des Champs, Lyon' },
+  { id: '3', name: 'Pierre Martin', registrationNumber: 'C789', rank: 'Lieutenant', contact: '0712345678', address: '3 Place de la Bourse, Marseille' },
+  { id: '4', name: 'Sophie Bernard', registrationNumber: 'D101', rank: 'Sergent-chef', contact: '0787654321', address: '4 Boulevard de la Liberté, Lille' },
+  { id: '5', name: 'Luc Moreau', registrationNumber: 'E112', rank: 'Adjudant', contact: '0611223344', address: '5 Rue Sainte-Catherine, Bordeaux' },
 ];
 
 let missions: Mission[] = [
-  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentId: '1', startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), priority: 5, requiredSkills: ['Reconnaissance', 'Tir de précision'] },
-  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentId: '5', startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), priority: 3, requiredSkills: ['Logistique', 'Transport'] },
-  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentId: null, startDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), priority: 2, requiredSkills: ['Combat rapproché'] },
-  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentId: '4', startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), priority: 4, requiredSkills: ['Démolition', 'Ingénierie'] },
-  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentId: '2', startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), priority: 4, requiredSkills: ['Médecine'] },
+  { id: 'm1', name: 'Opération Aube Rouge', details: 'Reconnaissance en territoire hostile.', agentId: '1', startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), priority: 5 },
+  { id: 'm2', name: 'Mission Logistique Alpha', details: 'Approvisionnement du poste avancé 3.', agentId: '5', startDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), priority: 3 },
+  { id: 'm3', name: 'Exercice Feu de Forêt', details: 'Simulation de combat et extraction.', agentId: null, startDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), priority: 2 },
+  { id: 'm4', name: 'Opération Serpent de Mer', details: 'Infiltration et sabotage.', agentId: '4', startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
+  { id: 'm5', name: 'Soutien Médical Bravo', details: 'Mise en place d\'un hôpital de campagne.', agentId: '2', startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), endDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), priority: 4 },
 ];
 
 

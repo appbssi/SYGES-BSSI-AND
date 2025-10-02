@@ -41,7 +41,6 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
     } else if (agent) {
       reset({
         ...agent,
-        skills: agent.skills.join(', ')
       });
     } else {
       reset({
@@ -50,7 +49,6 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
         rank: '',
         contact: '',
         address: '',
-        skills: ''
       });
     }
   }, [isOpen, agent, reset]);
@@ -117,13 +115,6 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
             <div className="col-span-3">
               <Textarea id="address" {...register("address")} className="w-full" />
               {state.errors?.address && <p className="text-red-500 text-xs mt-1">{state.errors.address[0]}</p>}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="skills" className="text-right">Compétences</Label>
-            <div className="col-span-3">
-              <Input id="skills" {...register("skills")} placeholder="Compétences séparées par des virgules" className="w-full" />
-              {state.errors?.skills && <p className="text-red-500 text-xs mt-1">{state.errors.skills[0]}</p>}
             </div>
           </div>
           <DialogFooter>
