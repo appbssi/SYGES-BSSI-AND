@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -19,17 +20,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
+import { Download, ChevronDown, FileText, FileSpreadsheet, Plus } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
+import { AgentForm } from "./agent-form";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
 export function AgentsClient() {
   const [isClient, setIsClient] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -95,6 +98,10 @@ export function AgentsClient() {
     ]);
     exportToPdf("Liste des Agents", headers, body, "ebrigade_agents.pdf");
   };
+  
+  const handleAddNew = () => {
+    setIsFormOpen(true);
+  };
 
   const isLoading = agentsLoading || missionsLoading;
 
@@ -118,6 +125,7 @@ export function AgentsClient() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
        <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="mb-4">
@@ -180,6 +188,12 @@ export function AgentsClient() {
           </Table>
         </CardContent>
       </Card>
+      
+      <AgentForm 
+        isOpen={isFormOpen} 
+        setIsOpen={setIsFormOpen} 
+        agent={null}
+      />
     </>
   );
 }
