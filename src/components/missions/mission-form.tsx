@@ -1,8 +1,10 @@
 
 "use client";
 
-import { useEffect, useActionState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import type { Mission } from "@/lib/types";
 import {
   Dialog,
@@ -15,15 +17,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createMissionAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "../ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Calendar } from "../ui/calendar";
 import { fr } from "date-fns/locale";
+import { addDoc } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { missionsCollection } from "@/firebase/firestore/missions";
 
 interface MissionFormProps {
   isOpen: boolean;
@@ -31,23 +35,26 @@ interface MissionFormProps {
   mission: Mission | null; // Mission update is not implemented, so this will be null
 }
 
-const initialState: { errors: Record<string, string[]>, message?: string } = {
-  errors: {},
-};
+const missionSchema = z.object({
+  name: z.string().min(1, "Le nom est requis."),
+  description: z.string().min(1, "La description est requise."),
+  startDate: z.date({ required_error: "La date de début est requise."}),
+  endDate: z.date({ required_error: "La date de fin est requise."}),
+}).refine(data => data.startDate < data.endDate, {
+    message: "La date de fin doit être après la date de début.",
+    path: ["endDate"],
+});
 
-type FormValues = {
-  name: string;
-  description: string;
-  startDate: Date;
-  endDate: Date;
-};
+
+type FormValues = z.infer<typeof missionSchema>;
 
 
 export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
-  const { control, reset, getValues, formState: { errors } } = useForm<FormValues>();
-  
-  const [state, formAction, isPending] = useActionState(createMissionAction, initialState);
-
+  const { control, handleSubmit, reset, getValues, formState: { errors } } = useForm<FormValues>({
+      resolver: zodResolver(missionSchema),
+  });
+  const firestore = useFirestore();
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -63,15 +70,33 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
     }
   }, [isOpen, reset]);
   
-  useEffect(() => {
-    if (state.message === 'success') {
-       toast({
-        title: `Mission Créée`,
-        description: `La mission a été créée avec succès.`,
-      });
-      setIsOpen(false);
+
+  const onSubmit = async (data: FormValues) => {
+    setIsSaving(true);
+    try {
+        const missionsRef = missionsCollection(firestore);
+        await addDoc(missionsRef, {
+            ...data,
+            startDate: data.startDate.toISOString(),
+            endDate: data.endDate.toISOString(),
+            agentIds: [],
+        });
+        toast({
+            title: `Mission Créée`,
+            description: `La mission "${data.name}" a été créée avec succès.`,
+        });
+        setIsOpen(false);
+    } catch (error) {
+        console.error("Erreur lors de la création de la mission: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur",
+            description: "Une erreur est survenue lors de la création de la mission."
+        });
+    } finally {
+        setIsSaving(false);
     }
-  }, [state, setIsOpen, toast]);
+  }
 
 
   return (
@@ -83,7 +108,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
             Saisissez les informations de la nouvelle mission.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Nom</Label>
             <div className="col-span-3">
@@ -92,7 +117,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                 control={control}
                 render={({ field }) => <Input id="name" {...field} className="w-full" />}
               />
-              {state.errors?.name && <p className="text-red-500 text-xs mt-1">{state.errors.name[0]}</p>}
+              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
@@ -103,7 +128,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                 control={control}
                 render={({ field }) => <Textarea id="description" {...field} className="w-full" />}
               />
-               {state.errors?.description && <p className="text-red-500 text-xs mt-1">{state.errors.description[0]}</p>}
+               {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -132,7 +157,6 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                                 initialFocus
                                 locale={fr}
                             />
-                            <input type="hidden" name="startDate" value={field.value?.toISOString()}/>
                             </PopoverContent>
                         </Popover>
                     )}
@@ -161,25 +185,26 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
                                 initialFocus
                                 locale={fr}
                             />
-                             <input type="hidden" name="endDate" value={value?.toISOString()}/>
                             </PopoverContent>
                         </Popover>
                     )}
                  />
             </div>
           </div>
-          {(state.errors?.startDate || state.errors?.endDate) && (
+          {(errors.startDate || errors.endDate) && (
               <div className="grid grid-cols-4 items-center gap-4">
                   <div className="col-start-2 col-span-3">
-                    {state.errors?.startDate && <p className="text-red-500 text-xs mt-1">{state.errors.startDate[0]}</p>}
-                    {state.errors?.endDate && <p className="text-red-500 text-xs mt-1">{state.errors.endDate[0]}</p>}
+                    {errors.startDate && <p className="text-red-500 text-xs mt-1">{errors.startDate.message}</p>}
+                    {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate.message}</p>}
                   </div>
               </div>
           )}
           
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-            <Button type="submit" disabled={isPending}>{isPending ? 'Création...' : 'Créer la Mission'}</Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Création...</> : 'Créer la Mission'}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
