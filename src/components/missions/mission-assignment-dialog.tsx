@@ -26,7 +26,6 @@ import {
 import { Label } from "../ui/label";
 import { useFirestore } from "@/firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { revalidatePath } from "next/cache";
 
 interface MissionAssignmentDialogProps {
   isOpen: boolean;
