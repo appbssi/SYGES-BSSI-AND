@@ -13,11 +13,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Download } from "lucide-react";
+import { BrainCircuit, Download, MoreHorizontal, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { format } from "date-fns";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { exportToCsv } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { deleteMissionAction } from "@/lib/actions";
+import { useToast } from "@/hooks/use-toast";
 
 type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Agent | null, status: "Active" | "Upcoming" | "Completed" };
 
@@ -29,6 +47,9 @@ export function MissionsClient({
   initialMissions: Mission[];
 }) {
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const { toast } = useToast();
 
   const getMissionStatus = (mission: Mission) => {
     const now = new Date();
@@ -61,6 +82,23 @@ export function MissionsClient({
     exportToCsv(dataToExport, "ebigade_missions.csv");
   };
 
+  const handleDelete = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsAlertOpen(true);
+  }
+
+  const confirmDelete = async () => {
+    if (selectedMission) {
+      await deleteMissionAction(selectedMission.id);
+      toast({
+        title: "Mission Annulée",
+        description: `La mission ${selectedMission.name} a été annulée.`,
+      });
+      setIsAlertOpen(false);
+      setSelectedMission(null);
+    }
+  }
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -82,6 +120,7 @@ export function MissionsClient({
                 <TableHead>Timeline</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -123,6 +162,20 @@ export function MissionsClient({
                   <TableCell>
                     <Badge variant="outline">P-{mission.priority}</Badge>
                   </TableCell>
+                   <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" /> Annuler
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -135,6 +188,20 @@ export function MissionsClient({
         agents={initialAgents}
         missions={initialMissions}
       />
+       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete mission {selectedMission?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

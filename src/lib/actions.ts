@@ -87,3 +87,9 @@ export async function saveMissionAssignments(assignments: Mission[], unassignedM
     revalidatePath('/agents');
     revalidatePath('/');
 }
+
+export async function deleteMissionAction(id: string) {
+  deleteMission(id);
+  revalidatePath("/missions");
+  revalidatePath("/");
+}
