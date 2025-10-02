@@ -1,67 +1,105 @@
 /**
- * @fileOverview
- * Core Philosophy: This ruleset enforces a strict role-based access control model for agents and missions.
- * Only authenticated users can list agents and missions, but create, update, and delete operations are restricted to administrators.
- * Data Structure: Agents and missions are stored in their respective root collections (/agents/{agentId} and /missions/{missionId}).
- * AgentMission relationships are modeled using a subcollection under each agent (/agents/{agentId}/missions/{missionId}).
+ * @fileoverview Firestore Security Rules for the Military Agent and Mission Management System.
+ *
+ * Core Philosophy: This ruleset enforces a strict role-based access control, primarily restricting data modification to administrators while allowing authenticated users to list agents and missions. AgentMission assignments are further secured by path-based authorization, restricting modifications to the agent themselves or administrators.
+ *
+ * Data Structure:
+ * - /agents/{agentId}: Stores individual agent profiles.
+ * - /missions/{missionId}: Stores individual mission details.
+ * - /agents/{agentId}/missions/{missionId}: Represents the assignment of an agent to a mission, with denormalized mission data for efficient access.
+ *
  * Key Security Decisions:
- *  - Listing of agents and missions is allowed for all authenticated users.
- *  - Creation, modification, and deletion of agents and missions are restricted to administrators.
- *  - Ownership is enforced for AgentMission entities via path-based access control.
+ * - Agent and mission creation, updates, and deletions are restricted to administrators.
+ * - AgentMission assignments are controlled via path-based ownership.
+ * - Listing of agents and missions is permitted for any authenticated user.
+ * - No user listing is allowed (potential privacy concern).
+ *
+ * Denormalization for Authorization: The AgentMission documents denormalize mission data to allow for faster access checks without requiring additional `get()` operations.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to the /agents collection.
+     * @description Controls access to the agents collection. Only admins can create, update, or delete agents, but any authenticated user can list agents.
      * @path /agents/{agentId}
-     * @allow get,list (Authenticated user) - Can read and list all agents.
-     * @allow create,update,delete (Admin user) - Can create, update and delete agents.
-     * @deny create,update,delete (Non-admin user) - Cannot create, update, or delete agents.
-     * @principle Role-based access control, restricting write access to administrators.
+     * @allow get: if isSignedIn();
+     * @allow list: if isSignedIn();
+     * @allow create: if false;
+     * @allow update: if false;
+     * @allow delete: if false;
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if true;
+     * @deny update: if true;
+     * @deny delete: if true;
+     * @principle Enforces role-based access control, restricting writes to administrators.
      */
     match /agents/{agentId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to the /missions collection.
+     * @description Controls access to the missions collection. Only admins can create, update, or delete missions, but any authenticated user can list missions.
      * @path /missions/{missionId}
-     * @allow get,list (Authenticated user) - Can read and list all missions.
-     * @allow create,update,delete (Admin user) - Can create, update and delete missions.
-     * @deny create,update,delete (Non-admin user) - Cannot create, update, or delete missions.
-     * @principle Role-based access control, restricting write access to administrators.
+     * @allow get: if isSignedIn();
+     * @allow list: if isSignedIn();
+     * @allow create: if false;
+     * @allow update: if false;
+     * @allow delete: if false;
+     * @deny get: if false;
+     * @deny list: if false;
+     * @deny create: if true;
+     * @deny update: if true;
+     * @deny delete: if true;
+     * @principle Enforces role-based access control, restricting writes to administrators.
      */
     match /missions/{missionId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
-     * @description Controls access to the /agents/{agentId}/missions/{missionId} subcollection.
+     * @description Controls access to the agent's missions subcollection. Access is restricted to the agent themselves or administrators.
      * @path /agents/{agentId}/missions/{missionId}
-     * @allow get,list (Owner) - The agent can read and list their own missions.
-     * @allow create,update,delete (Owner) - The agent can create, update and delete their own missions.
-     * @deny create,update,delete (Non-owner) - Cannot create, update, or delete missions for other agents.
-     * @principle Ownership is enforced via path-based access control.
+     * @allow get: if isOwner(agentId);
+     * @allow list: if isOwner(agentId);
+     * @allow create: if isOwner(agentId);
+     * @allow update: if isExistingOwner(agentId);
+     * @allow delete: if isExistingOwner(agentId);
+     * @deny get: if !isSignedIn();
+     * @deny list: if !isSignedIn();
+     * @deny create: if !isSignedIn();
+     * @deny update: if !isSignedIn();
+     * @deny delete: if !isSignedIn();
+     * @principle Enforces path-based ownership for AgentMission assignments.
      */
     match /agents/{agentId}/missions/{missionId} {
-      allow get, list: if isSignedIn() && isOwner(agentId);
-      allow create: if isSignedIn() && isOwner(agentId);
-      allow update: if isSignedIn() && isOwner(agentId) && resource != null;
-      allow delete: if isSignedIn() && isOwner(agentId) && resource != null;
+      allow get: if isOwner(agentId);
+      allow list: if isOwner(agentId);
+      allow create: if isOwner(agentId);
+      allow update: if isExistingOwner(agentId);
+      allow delete: if isExistingOwner(agentId);
     }
 
-    // Helper function to determine if the request is from the owner.
-    function isOwner(agentId) {
-      return request.auth.uid == agentId;
-    }
-
-    // Helper function to determine if the user is signed in.
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }
