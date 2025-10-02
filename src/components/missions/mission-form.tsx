@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from "react";
+import { useEffect, useActionState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import type { Mission } from "@/lib/types";
 import {
@@ -37,7 +37,7 @@ const initialState = {
 
 type FormValues = {
   name: string;
-  details: string;
+  description: string;
   startDate: Date;
   endDate: Date;
 };
@@ -56,7 +56,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
       const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       reset({
         name: '',
-        details: '',
+        description: '',
         startDate: today,
         endDate: nextWeek,
       });
@@ -96,14 +96,14 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="details" className="text-right mt-2">Détails</Label>
+            <Label htmlFor="description" className="text-right mt-2">Détails</Label>
              <div className="col-span-3">
                <Controller
-                name="details"
+                name="description"
                 control={control}
-                render={({ field }) => <Textarea id="details" {...field} className="w-full" />}
+                render={({ field }) => <Textarea id="description" {...field} className="w-full" />}
               />
-               {state.errors?.details && <p className="text-red-500 text-xs mt-1">{state.errors.details[0]}</p>}
+               {state.errors?.description && <p className="text-red-500 text-xs mt-1">{state.errors.description[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

@@ -1,3 +1,4 @@
+
 export type Agent = {
   id: string;
   firstName: string;
@@ -11,7 +12,7 @@ export type Agent = {
 export type Mission = {
   id: string;
   name: string;
-  details: string;
+  description: string;
   agentIds: string[];
   startDate: string;
   endDate: string;

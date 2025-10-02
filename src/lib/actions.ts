@@ -106,7 +106,7 @@ export async function deleteAgentAction(id: string) {
 
 const missionSchema = z.object({
     name: z.string().min(1, "Le nom est requis."),
-    details: z.string().min(1, "Les détails sont requis."),
+    description: z.string().min(1, "Les détails sont requis."),
     startDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de début invalide."),
     endDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de fin invalide."),
 }).refine(data => new Date(data.startDate) < new Date(data.endDate), {
@@ -147,8 +147,6 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
         }
     });
     
-    // This part seems to be for the AI feature which isn't fully implemented with UI yet.
-    // I'll keep the logic but the UI doesn't seem to use unassignedMissions currently.
     unassignedMissions.forEach(missionId => {
         const missionRef = db.collection('missions').doc(missionId);
         batch.update(missionRef, { agentIds: [] });

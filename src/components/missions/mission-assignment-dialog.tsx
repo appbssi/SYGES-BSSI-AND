@@ -151,7 +151,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableAgents.map(agent => (
-                                            <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>
+                                            <SelectItem key={agent.id} value={agent.id}>{agent.firstName} {agent.lastName}</SelectItem>
                                         ))}
                                         {availableAgents.length === 0 && <p className="p-2 text-xs text-muted-foreground text-center">Aucun agent disponible</p>}
                                     </SelectContent>
