@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -34,6 +35,7 @@ import { Download, MoreHorizontal, Plus, Trash2, FilePenLine } from "lucide-reac
 import { exportToCsv } from "@/lib/utils";
 import { deleteAgentAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AgentWithStatus = Omit<Agent, 'avatar'> & { status: "Disponible" | "Occupé" };
 
@@ -48,6 +50,8 @@ export function AgentsClient({
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
+  const [statusFilter, setStatusFilter] = useState<"all" | "Disponible" | "Occupé">("all");
+
 
   const getAgentStatus = (agentId: string) => {
     const now = new Date();
@@ -64,6 +68,12 @@ export function AgentsClient({
     ...agent,
     status: getAgentStatus(agent.id),
   }));
+  
+  const filteredAgents = agentsWithStatus.filter(agent => {
+    if (statusFilter === 'all') return true;
+    return agent.status === statusFilter;
+  });
+
 
   const handleEdit = (agent: Agent) => {
     setSelectedAgent(agent);
@@ -93,7 +103,7 @@ export function AgentsClient({
   }
 
   const handleExport = () => {
-    const dataToExport = agentsWithStatus.map(({ id, ...rest }) => ({
+    const dataToExport = filteredAgents.map(({ id, ...rest }) => ({
       ...rest,
       status: rest.status === "Disponible" ? "Disponible" : "Occupé",
     }));
@@ -109,6 +119,13 @@ export function AgentsClient({
           <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
+       <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="mb-4">
+        <TabsList>
+          <TabsTrigger value="all">Tous</TabsTrigger>
+          <TabsTrigger value="Disponible">Disponibles</TabsTrigger>
+          <TabsTrigger value="Occupé">Occupés</TabsTrigger>
+        </TabsList>
+      </Tabs>
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -122,7 +139,7 @@ export function AgentsClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {agentsWithStatus.map((agent) => (
+              {filteredAgents.map((agent) => (
                 <TableRow key={agent.id}>
                   <TableCell>
                     <div className="font-medium">{agent.name}</div>
@@ -156,6 +173,13 @@ export function AgentsClient({
                   </TableCell>
                 </TableRow>
               ))}
+               {filteredAgents.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.
+                    </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
