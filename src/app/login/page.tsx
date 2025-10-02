@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Swords } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,8 +39,15 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <Swords className="size-8" />
+            <div className="flex size-24 items-center justify-center rounded-lg bg-primary/10 text-primary-foreground">
+               <Image 
+                src="https://picsum.photos/seed/logo/100/100" 
+                alt="Logo eBrigade"
+                width={100}
+                height={100}
+                className="rounded-lg"
+                data-ai-hint="logo"
+              />
             </div>
           </div>
           <CardTitle className="text-2xl">eBrigade-BSSI</CardTitle>
