@@ -33,9 +33,4 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
     revalidatePath('/');
 }
 
-export async function deleteMissionAction(id: string) {
-  const db = await dbPromise;
-  await db.collection('missions').doc(id).delete();
-  revalidatePath("/missions");
-  revalidatePath("/");
-}
+    

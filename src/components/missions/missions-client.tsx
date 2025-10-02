@@ -38,7 +38,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteMissionAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -46,8 +45,8 @@ import { MissionForm } from "./mission-form";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
-import { missionsCollection } from "@/firebase/firestore/missions";
-import { updateDoc, doc } from "firebase/firestore";
+import { missionsCollection, missionDoc } from "@/firebase/firestore/missions";
+import { updateDoc, doc, deleteDoc } from "firebase/firestore";
 
 type MissionStatus = "Active" | "À venir" | "Terminée" | "Chargement...";
 type MissionWithAgents = Mission & { agents: Agent[], status: MissionStatus };
@@ -173,13 +172,23 @@ export function MissionsClient() {
 
   const confirmDelete = async () => {
     if (selectedMission) {
-      await deleteMissionAction(selectedMission.id);
-      toast({
-        title: "Mission Annulée",
-        description: `La mission ${selectedMission.name} a été annulée.`,
-      });
-      setIsAlertOpen(false);
-      setSelectedMission(null);
+      try {
+        const missionRef = missionDoc(firestore, selectedMission.id);
+        await deleteDoc(missionRef);
+        toast({
+          title: "Mission Annulée",
+          description: `La mission ${selectedMission.name} a été supprimée.`,
+        });
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Erreur de suppression",
+          description: "Impossible de supprimer la mission.",
+        });
+      } finally {
+        setIsAlertOpen(false);
+        setSelectedMission(null);
+      }
     }
   }
 
@@ -361,3 +370,5 @@ export function MissionsClient() {
     </>
   );
 }
+
+    
