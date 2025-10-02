@@ -1,3 +1,4 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -13,7 +14,7 @@ const agentSchema = z.object({
   address: z.string().min(1, "L'adresse est requise"),
 });
 
-export async function createAgentAction(formData: FormData) {
+export async function createAgentAction(prevState: any, formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = agentSchema.safeParse(rawData);
 
@@ -32,9 +33,10 @@ export async function createAgentAction(formData: FormData) {
   addAgent(validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
+  return {};
 }
 
-export async function updateAgentAction(id: string, formData: FormData) {
+export async function updateAgentAction(id: string, prevState: any, formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
   const validatedFields = agentSchema.safeParse(rawData);
 
@@ -54,6 +56,7 @@ export async function updateAgentAction(id: string, formData: FormData) {
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
+  return {};
 }
 
 export async function deleteAgentAction(id: string) {
@@ -64,20 +67,39 @@ export async function deleteAgentAction(id: string) {
 }
 
 const missionSchema = z.object({
-    name: z.string().min(1, "Le nom est requis"),
-    details: z.string().min(1, "Les détails sont requis"),
-    agentIds: z.array(z.string()),
-    startDate: z.string().datetime(),
-    endDate: z.string().datetime(),
+    name: z.string().min(1, "Le nom est requis."),
+    details: z.string().min(1, "Les détails sont requis."),
+    startDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de début invalide."),
+    endDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de fin invalide."),
     priority: z.coerce.number().min(1).max(5),
-    notes: z.string().optional(),
+}).refine(data => new Date(data.startDate) < new Date(data.endDate), {
+    message: "La date de fin doit être après la date de début.",
+    path: ["endDate"],
 });
 
+
+export async function createMissionAction(prevState: any, formData: FormData) {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedFields = missionSchema.safeParse(rawData);
+
+    if (!validatedFields.success) {
+        return { errors: validatedFields.error.flatten().fieldErrors };
+    }
+
+    addMission({
+        ...validatedFields.data,
+        agentIds: [], // Start with no agents assigned
+    });
+
+    revalidatePath('/missions');
+    revalidatePath('/');
+    return {};
+}
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
     assignments.forEach(mission => {
         if (mission.id) {
-            updateMission(mission.id, { agentIds: mission.agentIds, notes: mission.notes });
+            updateMission(mission.id, { agentIds: mission.agentIds as string[], notes: mission.notes });
         }
     });
     unassignedMissions.forEach(missionId => {

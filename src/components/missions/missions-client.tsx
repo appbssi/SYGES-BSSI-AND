@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, Download, MoreHorizontal, Trash2, UserPlus, Users } from "lucide-react";
+import { Check, Download, MoreHorizontal, Plus, Trash2, UserPlus, Users } from "lucide-react";
 import { format } from "date-fns";
 import { exportToCsv } from "@/lib/utils";
 import {
@@ -25,7 +25,6 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -42,7 +41,7 @@ import { deleteMissionAction, saveMissionAssignments } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { MissionForm } from "./mission-form";
 
 type MissionWithAgents = Omit<Mission, "agentIds"> & { agents: (Omit<Agent, 'avatar'> | null)[], status: "Active" | "À venir" | "Terminée" };
 
@@ -54,6 +53,7 @@ export function MissionsClient({
   initialMissions: Mission[];
 }) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
 
@@ -122,6 +122,11 @@ export function MissionsClient({
     setIsAlertOpen(true);
   }
   
+  const handleAddNew = () => {
+    setSelectedMission(null);
+    setIsFormOpen(true);
+  };
+
   const handleToggleAgent = async (missionId: string, agentId: string) => {
       const mission = initialMissions.find(m => m.id === missionId);
       if (!mission) return;
@@ -158,6 +163,7 @@ export function MissionsClient({
         <h2 className="text-2xl font-bold">Journal de Mission</h2>
         <div className="flex gap-2">
             <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
+            <Button onClick={handleAddNew}><Plus className="mr-2" /> Créer une Mission</Button>
         </div>
       </div>
       <Card>
@@ -269,6 +275,12 @@ export function MissionsClient({
         </CardContent>
       </Card>
       
+      <MissionForm 
+        isOpen={isFormOpen} 
+        setIsOpen={setIsFormOpen} 
+        mission={selectedMission}
+      />
+
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

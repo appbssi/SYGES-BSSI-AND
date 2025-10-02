@@ -1,7 +1,8 @@
+
 'use server';
 
 /**
- * @fileOverview Ce fichier définit un flux Genkit pour optimiser les assignations de mission en fonction de la disponibilité des agents, de leurs compétences et de la priorité de la mission à l'aide de l'IA. Il comprend les définitions de fonction pour la fonction optimizeMissionAssignment,
+ * @fileOverview Ce fichier définit un flux Genkit pour optimiser les assignations de mission en fonction de la disponibilité des agents et de la priorité de la mission à l'aide de l'IA. Il comprend les définitions de fonction pour la fonction optimizeMissionAssignment,
  * ainsi que les types d'entrée et de sortie.
  *
  * - optimizeMissionAssignment - Une fonction qui gère le processus d'optimisation des assignations de mission.
@@ -77,9 +78,9 @@ const prompt = ai.definePrompt({
   Étant donné une liste d'agents avec leur disponibilité et leurs missions actuelles, et une liste de missions avec leurs priorités et délais, votre tâche est de créer un calendrier d'assignation optimisé.
 
   Considérez les facteurs suivants :
-  - Disponibilité de l'agent : Assurez-vous que les agents ne sont assignés à des missions que pendant leurs plages de disponibilité.
+  - Disponibilité de l'agent : Assurez-vous que les agents ne sont assignés à des missions que pendant leurs plages de disponibilité. Les missions actuelles rendent les agents indisponibles pendant ces périodes.
   - Priorité de la mission : Assignez les missions à plus haute priorité en premier.
-  - Évitement des conflits : Détectez et résolvez tout conflit de temps potentiel between les missions assignées au même agent. Si les conflits sont inévitables, notez-les dans les notes d'assignation.
+  - Évitement des conflits : Détectez et résolvez tout conflit de temps potentiel entre les missions assignées au même agent. Si les conflits sont inévitables, notez-les dans les notes d'assignation.
   
   La réponse doit être en français.
 

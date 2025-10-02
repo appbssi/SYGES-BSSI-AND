@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from "react";
@@ -31,8 +32,10 @@ const initialState = {
 
 export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
-  const formAction = agent ? updateAgentAction.bind(null, agent.id) : createAgentAction;
-  const [state, dispatch] = useFormState(formAction, initialState);
+  
+  const action = agent ? updateAgentAction.bind(null, agent.id) : createAgentAction;
+  const [state, dispatch] = useFormState(action, initialState);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,14 +65,14 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   useEffect(() => {
     if (state?.errors && Object.keys(state.errors).length > 0) {
       // Les erreurs sont maintenant affichées sous les champs
-    } else if (!isSubmitting && isOpen && !state?.errors) {
+    } else if (!isSubmitting && isOpen && state && !state.errors) {
        toast({
         title: `Agent ${agent ? 'Mis à Jour' : 'Créé'}`,
         description: `L'agent ${agent?.name || ''} a été ${agent ? 'mis à jour' : 'créé'} avec succès.`,
       });
       setIsOpen(false);
     }
-  }, [state, isSubmitting]);
+  }, [state, isSubmitting, isOpen, agent, setIsOpen, toast]);
 
 
   return (
