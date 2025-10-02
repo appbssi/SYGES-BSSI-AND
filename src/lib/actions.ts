@@ -74,9 +74,11 @@ const missionSchema = z.object({
 });
 
 
-export async function saveMissionAssignments(assignments: Mission[], unassignedMissions: string[]) {
+export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
     assignments.forEach(mission => {
-        updateMission(mission.id, { agentId: mission.agentId, notes: mission.notes });
+        if (mission.id) {
+            updateMission(mission.id, { agentId: mission.agentId, notes: mission.notes });
+        }
     });
     unassignedMissions.forEach(missionId => {
         updateMission(missionId, { agentId: null });

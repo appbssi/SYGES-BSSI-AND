@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BrainCircuit, Download, MoreHorizontal, Trash2 } from "lucide-react";
+import { BrainCircuit, Download, MoreHorizontal, Trash2, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { exportToCsv } from "@/lib/utils";
@@ -21,6 +21,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -33,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { deleteMissionAction } from "@/lib/actions";
+import { deleteMissionAction, saveMissionAssignments } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 
@@ -58,6 +62,23 @@ export function MissionsClient({
     if (end < now) return "Terminée";
     if (start > now) return "À venir";
     return "Active";
+  }
+  
+  const isAgentAvailable = (agentId: string, missionToCheck: Mission) => {
+      const missionStart = new Date(missionToCheck.startDate);
+      const missionEnd = new Date(missionToCheck.endDate);
+      
+      const agentMissions = initialMissions.filter(m => m.agentId === agentId && m.id !== missionToCheck.id);
+
+      for (const mission of agentMissions) {
+          const existingStart = new Date(mission.startDate);
+          const existingEnd = new Date(mission.endDate);
+          // Check for overlap
+          if (missionStart < existingEnd && missionEnd > existingStart) {
+              return false; // Agent is busy
+          }
+      }
+      return true; // Agent is available
   }
 
   const missionsWithAgents: MissionWithAgent[] = initialMissions.map(
@@ -91,6 +112,14 @@ export function MissionsClient({
     setSelectedMission(mission);
     setIsAlertOpen(true);
   }
+  
+  const handleAssignAgent = async (missionId: string, agentId: string | null) => {
+      await saveMissionAssignments([{ id: missionId, agentId: agentId }] as Mission[], []);
+      toast({
+          title: "Assignation Mise à Jour",
+          description: "L'agent a été assigné à la mission."
+      });
+  }
 
   const confirmDelete = async () => {
     if (selectedMission) {
@@ -110,9 +139,6 @@ export function MissionsClient({
         <h2 className="text-2xl font-bold">Journal de Mission</h2>
         <div className="flex gap-2">
             <Button variant="outline" onClick={handleExport}><Download className="mr-2" /> Exporter en CSV</Button>
-            <Button onClick={() => setIsAssignmentDialogOpen(true)}>
-                <BrainCircuit className="mr-2" /> Optimiser les Assignations
-            </Button>
         </div>
       </div>
       <Card>
@@ -128,7 +154,9 @@ export function MissionsClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionsWithAgents.map((mission) => (
+              {missionsWithAgents.map((mission) => {
+                const availableAgents = initialAgents.filter(agent => isAgentAvailable(agent.id, mission));
+                return (
                 <TableRow key={mission.id}>
                   <TableCell className="font-medium">{mission.name}</TableCell>
                   <TableCell>
@@ -162,6 +190,29 @@ export function MissionsClient({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
+                        {mission.status !== 'Terminée' && (
+                        <DropdownMenuSub>
+                           <DropdownMenuSubTrigger>
+                               <UserPlus className="mr-2 h-4 w-4" />
+                               {mission.agentId ? "Changer l'agent" : "Assigner un agent"}
+                           </DropdownMenuSubTrigger>
+                           <DropdownMenuPortal>
+                               <DropdownMenuSubContent>
+                                  {availableAgents.map(agent => (
+                                     <DropdownMenuItem key={agent.id} onClick={() => handleAssignAgent(mission.id, agent.id)}>
+                                         {agent.name}
+                                     </DropdownMenuItem>
+                                  ))}
+                                  {availableAgents.length === 0 && <DropdownMenuItem disabled>Aucun agent disponible</DropdownMenuItem>}
+                                  {mission.agentId && (
+                                     <DropdownMenuItem className="text-destructive" onClick={() => handleAssignAgent(mission.id, null)}>
+                                         Désassigner
+                                     </DropdownMenuItem>
+                                  )}
+                               </DropdownMenuSubContent>
+                           </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        )}
                         <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" /> Annuler
                         </DropdownMenuItem>
@@ -169,17 +220,12 @@ export function MissionsClient({
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-      <MissionAssignmentDialog 
-        isOpen={isAssignmentDialogOpen} 
-        setIsOpen={setIsAssignmentDialogOpen}
-        agents={initialAgents}
-        missions={initialMissions}
-      />
+      
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -55,7 +55,7 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
             .map(m => ({ missionId: m.id, start: new Date(m.startDate).toISOString(), end: new Date(m.endDate).toISOString() }))
     }));
 
-    const missionsToAssign = missions.filter(m => getMissionStatus(m) !== 'Terminée' );
+    const missionsToAssign = missions.filter(m => getMissionStatus(m) !== 'Terminée' && !m.agentId);
     
     try {
       const result = await optimizeMissionAssignment({
