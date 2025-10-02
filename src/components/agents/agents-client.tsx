@@ -34,9 +34,8 @@ import { Download, MoreHorizontal, Plus, Trash2, FilePenLine } from "lucide-reac
 import { exportToCsv } from "@/lib/utils";
 import { deleteAgentAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
-import Image from "next/image";
 
-type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" };
+type AgentWithStatus = Omit<Agent, 'avatar'> & { status: "Disponible" | "Occupé" };
 
 export function AgentsClient({
   initialAgents,
@@ -61,7 +60,7 @@ export function AgentsClient({
     return hasActiveMission ? "Occupé" : "Disponible";
   };
 
-  const agentsWithStatus: AgentWithStatus[] = initialAgents.map((agent) => ({
+  const agentsWithStatus: AgentWithStatus[] = initialAgents.map(({avatar, ...agent}) => ({
     ...agent,
     status: getAgentStatus(agent.id),
   }));
@@ -94,7 +93,7 @@ export function AgentsClient({
   }
 
   const handleExport = () => {
-    const dataToExport = agentsWithStatus.map(({ id, avatar, ...rest }) => ({
+    const dataToExport = agentsWithStatus.map(({ id, ...rest }) => ({
       ...rest,
       status: rest.status === "Disponible" ? "Disponible" : "Occupé",
     }));
@@ -126,16 +125,7 @@ export function AgentsClient({
               {agentsWithStatus.map((agent) => (
                 <TableRow key={agent.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={agent.avatar}
-                        alt={agent.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <div className="font-medium">{agent.name}</div>
-                    </div>
+                    <div className="font-medium">{agent.name}</div>
                   </TableCell>
                   <TableCell>{agent.registrationNumber}</TableCell>
                   <TableCell>{agent.rank}</TableCell>

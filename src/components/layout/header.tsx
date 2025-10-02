@@ -3,6 +3,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 const getTitle = (pathname: string) => {
   if (pathname.startsWith("/agents")) return "Gestion des Agents";
@@ -19,8 +20,9 @@ export function AppHeader() {
       <h1 className="text-xl font-semibold">{getTitle(pathname)}</h1>
       <div className="ml-auto flex items-center gap-4">
         <Avatar className="h-9 w-9">
-          <AvatarImage src="https://picsum.photos/seed/user/100/100" alt="Avatar de l'utilisateur" data-ai-hint="user avatar" />
-          <AvatarFallback>U</AvatarFallback>
+          <AvatarFallback>
+            <User />
+          </AvatarFallback>
         </Avatar>
       </div>
     </header>

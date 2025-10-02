@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { format, getMonth } from "date-fns";
-import Image from "next/image";
 import { fr } from "date-fns/locale";
 
 export function DashboardClient({
@@ -139,10 +138,7 @@ export function DashboardClient({
                             <TableCell className="font-medium">{mission.name}</TableCell>
                             <TableCell>
                                 {mission.agent ? (
-                                    <div className="flex items-center gap-2">
-                                        <Image src={mission.agent.avatar} alt={mission.agent.name} width={24} height={24} className="rounded-full" />
-                                        <span className="text-sm">{mission.agent.name}</span>
-                                    </div>
+                                    <span className="text-sm">{mission.agent.name}</span>
                                 ) : "N/A"}
                             </TableCell>
                             <TableCell>{format(new Date(mission.endDate), 'd MMM yyyy', { locale: fr })}</TableCell>

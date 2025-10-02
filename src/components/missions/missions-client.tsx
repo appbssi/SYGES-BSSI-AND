@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BrainCircuit, Download, MoreHorizontal, Trash2 } from "lucide-react";
-import Image from "next/image";
 import { format } from "date-fns";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
 import { exportToCsv } from "@/lib/utils";
@@ -38,7 +37,7 @@ import { deleteMissionAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 import { fr } from "date-fns/locale";
 
-type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Agent | null, status: "Active" | "À venir" | "Terminée" };
+type MissionWithAgent = Omit<Mission, "agentId"> & { agent: Omit<Agent, 'avatar'> | null, status: "Active" | "À venir" | "Terminée" };
 
 export function MissionsClient({
   initialAgents,
@@ -62,11 +61,18 @@ export function MissionsClient({
   }
 
   const missionsWithAgents: MissionWithAgent[] = initialMissions.map(
-    (mission) => ({
+    (mission) => {
+      const agentData = initialAgents.find((a) => a.id === mission.agentId) || null;
+      const agent = agentData ? { ...agentData } : null;
+      if (agent) {
+        delete (agent as any).avatar;
+      }
+
+      return {
       ...mission,
-      agent: initialAgents.find((a) => a.id === mission.agentId) || null,
+      agent,
       status: getMissionStatus(mission)
-    })
+    }}
   ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
   
   const handleExport = () => {
@@ -130,16 +136,7 @@ export function MissionsClient({
                   <TableCell className="font-medium">{mission.name}</TableCell>
                   <TableCell>
                     {mission.agent ? (
-                      <div className="flex items-center gap-3">
-                        <Image
-                          src={mission.agent.avatar}
-                          alt={mission.agent.name}
-                          width={40}
-                          height={40}
-                          className="rounded-full"
-                        />
-                        <span>{mission.agent.name}</span>
-                      </div>
+                      <span>{mission.agent.name}</span>
                     ) : (
                       <span className="text-muted-foreground">Non assignée</span>
                     )}

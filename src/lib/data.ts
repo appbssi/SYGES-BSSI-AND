@@ -3,12 +3,12 @@ import type { Agent, Mission } from './types';
 // In a real application, this data would come from a database.
 // For this example, we're using a static in-memory array.
 
-let agents: Agent[] = [
-  { id: '1', name: 'Jean Dupont', registrationNumber: 'A123', rank: 'Sergent', contact: '0612345678', address: '1 Rue de la Paix, Paris', avatar: 'https://picsum.photos/seed/agent1/100/100', skills: ['Reconnaissance', 'Démolition', 'Tir de précision'] },
-  { id: '2', name: 'Marie Curie', registrationNumber: 'B456', rank: 'Caporal', contact: '0687654321', address: '2 Avenue des Champs, Lyon', avatar: 'https://picsum.photos/seed/agent2/100/100', skills: ['Médecine', 'Communication', 'Logistique'] },
-  { id: '3', name: 'Pierre Martin', registrationNumber: 'C789', rank: 'Lieutenant', contact: '0712345678', address: '3 Place de la Bourse, Marseille', avatar: 'https://picsum.photos/seed/agent3/100/100', skills: ['Commandement', 'Stratégie', 'Reconnaissance'] },
-  { id: '4', name: 'Sophie Bernard', registrationNumber: 'D101', rank: 'Sergent-chef', contact: '0787654321', address: '4 Boulevard de la Liberté, Lille', avatar: 'https://picsum.photos/seed/agent4/100/100', skills: ['Ingénierie', 'Démolition', 'Combat rapproché'] },
-  { id: '5', name: 'Luc Moreau', registrationNumber: 'E112', rank: 'Adjudant', contact: '0611223344', address: '5 Rue Sainte-Catherine, Bordeaux', avatar: 'https://picsum.photos/seed/agent5/100/100', skills: ['Logistique', 'Transport', 'Mécanique'] },
+let agents: Omit<Agent, 'avatar'>[] = [
+  { id: '1', name: 'Jean Dupont', registrationNumber: 'A123', rank: 'Sergent', contact: '0612345678', address: '1 Rue de la Paix, Paris', skills: ['Reconnaissance', 'Démolition', 'Tir de précision'] },
+  { id: '2', name: 'Marie Curie', registrationNumber: 'B456', rank: 'Caporal', contact: '0687654321', address: '2 Avenue des Champs, Lyon', skills: ['Médecine', 'Communication', 'Logistique'] },
+  { id: '3', name: 'Pierre Martin', registrationNumber: 'C789', rank: 'Lieutenant', contact: '0712345678', address: '3 Place de la Bourse, Marseille', skills: ['Commandement', 'Stratégie', 'Reconnaissance'] },
+  { id: '4', name: 'Sophie Bernard', registrationNumber: 'D101', rank: 'Sergent-chef', contact: '0787654321', address: '4 Boulevard de la Liberté, Lille', skills: ['Ingénierie', 'Démolition', 'Combat rapproché'] },
+  { id: '5', name: 'Luc Moreau', registrationNumber: 'E112', rank: 'Adjudant', contact: '0611223344', address: '5 Rue Sainte-Catherine, Bordeaux', skills: ['Logistique', 'Transport', 'Mécanique'] },
 ];
 
 let missions: Mission[] = [
@@ -20,7 +20,7 @@ let missions: Mission[] = [
 ];
 
 
-export const getAgents = () => agents;
+export const getAgents = () => agents as Agent[];
 export const getMissions = () => missions;
 
 export const getAgentById = (id: string) => agents.find(agent => agent.id === id);
@@ -33,7 +33,6 @@ export const addAgent = (agent: Omit<Agent, 'id' | 'avatar'>) => {
   const newAgent: Agent = {
     ...agent,
     id: (agents.length + 1).toString(),
-    avatar: `https://picsum.photos/seed/agent${agents.length + 1}/100/100`,
   };
   agents.push(newAgent);
   return newAgent;

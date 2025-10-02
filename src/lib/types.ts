@@ -5,7 +5,6 @@ export type Agent = {
   rank: string;
   contact: string;
   address: string;
-  avatar: string;
   skills: string[];
 };
 
