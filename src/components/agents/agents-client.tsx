@@ -19,9 +19,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -118,7 +115,7 @@ export function AgentsClient() {
       await deleteAgentAction(selectedAgent.id);
       toast({
         title: "Agent Supprimé",
-        description: `L'agent ${selectedAgent.name} a été supprimé avec succès.`,
+        description: `L'agent ${selectedAgent.firstName} ${selectedAgent.lastName} a été supprimé avec succès.`,
       });
       setIsAlertOpen(false);
       setSelectedAgent(null);
@@ -135,11 +132,11 @@ export function AgentsClient() {
   
   const handleExportPdf = () => {
     const headers = ["Nom", "Matricule", "Grade", "Contact", "Statut"];
-    const body = filteredAgents.map(({ name, registrationNumber, rank, contact, status }) => [
-        name,
+    const body = filteredAgents.map(({ firstName, lastName, registrationNumber, rank, contactNumber, status }) => [
+        `${firstName} ${lastName}`,
         registrationNumber,
         rank,
-        contact,
+        contactNumber,
         status,
     ]);
     exportToPdf("Liste des Agents", headers, body, "ebrigade_agents.pdf");
@@ -201,11 +198,11 @@ export function AgentsClient() {
                 filteredAgents.map((agent) => (
                   <TableRow key={agent.id}>
                     <TableCell>
-                      <div className="font-medium">{agent.name}</div>
+                      <div className="font-medium">{agent.firstName} {agent.lastName}</div>
                     </TableCell>
                     <TableCell>{agent.registrationNumber}</TableCell>
                     <TableCell>{agent.rank}</TableCell>
-                    <TableCell>{agent.contact}</TableCell>
+                    <TableCell>{agent.contactNumber}</TableCell>
                     <TableCell>
                       {agent.status === "Chargement..." ? (
                         <span className="text-muted-foreground text-xs">Chargement...</span>
@@ -260,7 +257,7 @@ export function AgentsClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Elle supprimera définitivement l'agent {selectedAgent?.name} et le désassignera de toutes ses missions.
+              Cette action est irréversible. Elle supprimera définitivement l'agent {selectedAgent?.firstName} {selectedAgent?.lastName} et le désassignera de toutes ses missions.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

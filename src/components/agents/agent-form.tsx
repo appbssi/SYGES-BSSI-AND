@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useActionState, useState } from "react";
+import { useEffect, useActionState } from "react";
 import { useForm } from "react-hook-form";
 import type { Agent } from "@/lib/types";
 import {
@@ -25,17 +25,18 @@ interface AgentFormProps {
   agent: Agent | null;
 }
 
-const initialState = {
+const initialState: { errors: Record<string, string[]> } = {
   errors: {},
 };
 
 export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
-  const { register, handleSubmit, reset, formState: { isSubmitting, isDirty } } = useForm<Agent>({
+  const { register, handleSubmit, reset, formState: { isSubmitting, isDirty, errors: clientErrors } } = useForm<Agent>({
       defaultValues: agent || {
-        name: '',
+        firstName: '',
+        lastName: '',
         registrationNumber: '',
         rank: '',
-        contact: '',
+        contactNumber: '',
         address: '',
       }
   });
@@ -50,24 +51,26 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
   useEffect(() => {
     if (isOpen) {
         reset(agent || {
-            name: '',
+            firstName: '',
+            lastName: '',
             registrationNumber: '',
             rank: '',
-            contact: '',
+            contactNumber: '',
             address: '',
         });
     }
   }, [isOpen, agent, reset]);
   
   useEffect(() => {
-    if (!isPending && !isDirty && formState.errors && Object.keys(formState.errors).length === 0) {
+    if (!isPending && isDirty && formState.errors && Object.keys(formState.errors).length === 0 && Object.keys(clientErrors).length === 0) {
        toast({
         title: `Agent ${agent ? 'Mis à Jour' : 'Créé'}`,
         description: `L'agent a été ${agent ? 'mis à jour' : 'créé'} avec succès.`,
       });
       setIsOpen(false);
+      reset();
     }
-  }, [formState, isPending, isDirty, agent, setIsOpen, toast]);
+  }, [formState, isPending, isDirty, agent, setIsOpen, toast, clientErrors, reset]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -78,12 +81,25 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
             {agent ? "Mettez à jour les informations de cet agent." : "Saisissez les informations du nouvel agent."}
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} onSubmit={handleSubmit(() => formAction(new FormData(event.target as HTMLFormElement)))} className="grid gap-4 py-4">
+        <form action={formAction} onSubmit={handleSubmit((data) => {
+            const formData = new FormData();
+            Object.entries(data).forEach(([key, value]) => {
+                formData.append(key, value);
+            });
+            formAction(formData);
+        })} className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Nom</Label>
+            <Label htmlFor="firstName" className="text-right">Prénom</Label>
             <div className="col-span-3">
-              <Input id="name" {...register("name")} className="w-full" />
-              {formState.errors?.name && <p className="text-red-500 text-xs mt-1">{formState.errors.name[0]}</p>}
+              <Input id="firstName" {...register("firstName")} className="w-full" />
+              {formState.errors?.firstName && <p className="text-red-500 text-xs mt-1">{formState.errors.firstName[0]}</p>}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="lastName" className="text-right">Nom</Label>
+            <div className="col-span-3">
+              <Input id="lastName" {...register("lastName")} className="w-full" />
+              {formState.errors?.lastName && <p className="text-red-500 text-xs mt-1">{formState.errors.lastName[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -101,10 +117,10 @@ export function AgentForm({ isOpen, setIsOpen, agent }: AgentFormProps) {
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="contact" className="text-right">Contact</Label>
+            <Label htmlFor="contactNumber" className="text-right">Contact</Label>
             <div className="col-span-3">
-              <Input id="contact" {...register("contact")} className="w-full" />
-              {formState.errors?.contact && <p className="text-red-500 text-xs mt-1">{formState.errors.contact[0]}</p>}
+              <Input id="contactNumber" {...register("contactNumber")} className="w-full" />
+              {formState.errors?.contactNumber && <p className="text-red-500 text-xs mt-1">{formState.errors.contactNumber[0]}</p>}
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

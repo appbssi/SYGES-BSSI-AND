@@ -119,7 +119,7 @@ export function MissionsClient() {
   const handleExportCsv = () => {
     const dataToExport = missionsWithAgents.map(m => ({
         nom_mission: m.name,
-        noms_agents: m.agents.map(a => a?.name || '').join('; ') || "Non assignée",
+        noms_agents: m.agents.map(a => `${a.firstName} ${a.lastName}` || '').join('; ') || "Non assignée",
         matricules_agents: m.agents.map(a => a?.registrationNumber || '').join('; ') || "N/A",
         date_debut: format(new Date(m.startDate), 'P', { locale: fr }),
         date_fin: format(new Date(m.endDate), 'P', { locale: fr }),
@@ -132,7 +132,7 @@ export function MissionsClient() {
     const headers = ["Mission", "Agents", "Début", "Fin", "Statut"];
     const body = missionsWithAgents.map(m => [
         m.name,
-        m.agents.map(a => a?.name).filter(Boolean).join(', ') || 'Non assignée',
+        m.agents.map(a => `${a.firstName} ${a.lastName}`).filter(Boolean).join(', ') || 'Non assignée',
         format(new Date(m.startDate), 'P', { locale: fr }),
         format(new Date(m.endDate), 'P', { locale: fr }),
         m.status,
@@ -244,7 +244,7 @@ export function MissionsClient() {
                             <div className="grid gap-2">
                               {mission.agents.map(agent => agent && (
                                 <div key={agent.id} className="flex items-center gap-2">
-                                  <p>{agent.name} ({agent.rank})</p>
+                                  <p>{agent.firstName} {agent.lastName} ({agent.rank})</p>
                                 </div>
                               ))}
                             </div>
@@ -301,7 +301,7 @@ export function MissionsClient() {
                                          <div className="w-4 mr-2">
                                             {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
                                          </div>
-                                         {agent.name}
+                                         {agent.firstName} {agent.lastName}
                                      </DropdownMenuItem>
                                   ))}
                                </DropdownMenuSubContent>

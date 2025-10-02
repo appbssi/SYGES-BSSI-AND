@@ -6,14 +6,15 @@ import { z } from "zod";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
 import { addAgent, updateAgent, deleteAgent } from "@/firebase/firestore/agents";
-import { addMission, updateMission, deleteMission } from "@/firebase/firestore/missions";
+import { addMission, deleteMission } from "@/firebase/firestore/missions";
 import type { Mission } from "./types";
 
 const agentSchema = z.object({
-  name: z.string().min(1, "Le nom est requis"),
+  firstName: z.string().min(1, "Le prénom est requis"),
+  lastName: z.string().min(1, "Le nom de famille est requis"),
   registrationNumber: z.string().min(1, "Le matricule est requis"),
   rank: z.string().min(1, "Le grade est requis"),
-  contact: z.string().min(1, "Le contact est requis"),
+  contactNumber: z.string().min(1, "Le contact est requis"),
   address: z.string().min(1, "L'adresse est requise"),
 });
 
@@ -52,7 +53,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
   await addAgent(db, validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
-  return {};
+  return { errors: {} };
 }
 
 export async function updateAgentAction(id: string, prevState: any, formData: FormData) {
@@ -78,7 +79,7 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
-  return {};
+  return { errors: {} };
 }
 
 export async function deleteAgentAction(id: string) {
@@ -130,7 +131,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
 
     revalidatePath('/missions');
     revalidatePath('/');
-    return {};
+    return { errors: {} };
 }
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {

@@ -119,7 +119,7 @@ export function DashboardClient() {
                                   {mission.agents.length > 0 ? (
                                       <div className="flex flex-wrap gap-1">
                                       {mission.agents.map(agent => (
-                                          <span key={agent.id} className="text-sm">{agent.name}</span>
+                                          <span key={agent.id} className="text-sm">{agent.firstName} {agent.lastName}</span>
                                       )).reduce((prev, curr, i) => [prev, <span key={`sep-${i}`}>, </span>, curr] as any)}
                                       </div>
                                   ) : "N/A"}

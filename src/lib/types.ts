@@ -1,9 +1,10 @@
 export type Agent = {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   registrationNumber: string;
   rank: string;
-  contact: string;
+  contactNumber: string;
   address: string;
 };
 
