@@ -5,8 +5,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeAdminApp } from "@/firebase/admin-init";
-import { updateAgent, deleteAgent } from "@/firebase/firestore/agents";
-import { deleteMission } from "@/firebase/firestore/missions";
 import type { Mission } from "./types";
 
 const agentSchema = z.object({
@@ -18,18 +16,20 @@ const agentSchema = z.object({
   address: z.string().min(1, "L'adresse est requise"),
 });
 
-async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum: string, currentId?: string) {
+async function isRegistrationNumberTaken(db: FirebaseFirestore.Firestore, regNum: string, currentId?: string): Promise<boolean> {
     const agentsRef = db.collection('agents');
     const snapshot = await agentsRef.where('registrationNumber', '==', regNum).get();
     if (snapshot.empty) {
         return false;
     }
+    // If we're creating a new agent, any result means the number is taken.
     if (!currentId) {
-        return true; // creating new, and number already exists
+        return true;
     }
-    // updating, check if it's a different agent
+    // If we're updating, it's only a problem if the found doc has a different ID.
     return snapshot.docs.some(doc => doc.id !== currentId);
 }
+
 
 export async function createAgentAction(prevState: any, formData: FormData) {
   const rawData = Object.fromEntries(formData.entries());
@@ -41,8 +41,7 @@ export async function createAgentAction(prevState: any, formData: FormData) {
     };
   }
 
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
+  const db = getFirestore(await initializeAdminApp());
   
   if (await isRegistrationNumberTaken(db, validatedFields.data.registrationNumber)) {
      return {
@@ -66,8 +65,7 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
     };
   }
   
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
+  const db = getFirestore(await initializeAdminApp());
 
   if (await isRegistrationNumberTaken(db, validatedFields.data.registrationNumber, id)) {
      return {
@@ -75,7 +73,7 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
     };
   }
 
-  await updateAgent(db, id, validatedFields.data);
+  await db.collection('agents').doc(id).update(validatedFields.data);
   revalidatePath("/agents");
   revalidatePath("/");
   revalidatePath("/missions");
@@ -83,21 +81,21 @@ export async function updateAgentAction(id: string, prevState: any, formData: Fo
 }
 
 export async function deleteAgentAction(id: string) {
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
+  const db = getFirestore(await initializeAdminApp());
   
-  // Also unassign from any missions
   const missionsRef = db.collection('missions');
   const snapshot = await missionsRef.where('agentIds', 'array-contains', id).get();
+  
   const batch = db.batch();
   snapshot.forEach(doc => {
       const missionData = doc.data();
       const newAgentIds = missionData.agentIds.filter((agentId: string) => agentId !== id);
       batch.update(doc.ref, { agentIds: newAgentIds });
   });
-  await batch.commit();
+  
+  batch.delete(db.collection('agents').doc(id));
 
-  await deleteAgent(db, id);
+  await batch.commit();
 
   revalidatePath("/agents");
   revalidatePath("/");
@@ -106,7 +104,7 @@ export async function deleteAgentAction(id: string) {
 
 const missionSchema = z.object({
     name: z.string().min(1, "Le nom est requis."),
-    description: z.string().min(1, "Les détails sont requis."),
+    description: z.string().min(1, "La description est requise."),
     startDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de début invalide."),
     endDate: z.string().refine((d) => !isNaN(Date.parse(d)), "Date de fin invalide."),
 }).refine(data => new Date(data.startDate) < new Date(data.endDate), {
@@ -122,11 +120,10 @@ export async function createMissionAction(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         return { errors: validatedFields.error.flatten().fieldErrors };
     }
-    const adminApp = await initializeAdminApp();
-    const db = getFirestore(adminApp);
+    const db = getFirestore(await initializeAdminApp());
     await db.collection('missions').add({
         ...validatedFields.data,
-        agentIds: [], // Start with no agents assigned
+        agentIds: [],
     });
 
     revalidatePath('/missions');
@@ -135,8 +132,7 @@ export async function createMissionAction(prevState: any, formData: FormData) {
 }
 
 export async function saveMissionAssignments(assignments: Partial<Mission>[], unassignedMissions: string[]) {
-    const adminApp = await initializeAdminApp();
-    const db = getFirestore(adminApp);
+    const db = getFirestore(await initializeAdminApp());
 
     const batch = db.batch();
 
@@ -160,9 +156,8 @@ export async function saveMissionAssignments(assignments: Partial<Mission>[], un
 }
 
 export async function deleteMissionAction(id: string) {
-  const adminApp = await initializeAdminApp();
-  const db = getFirestore(adminApp);
-  await deleteMission(db, id);
+  const db = getFirestore(await initializeAdminApp());
+  await db.collection('missions').doc(id).delete();
   revalidatePath("/missions");
   revalidatePath("/");
 }

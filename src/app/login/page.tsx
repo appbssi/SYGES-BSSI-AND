@@ -1,83 +1,59 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Swords } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth, useUser } from "@/firebase";
+import { initiateAnonymousSignIn } from "@/firebase/non-blocking-login";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function LoginPage() {
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const router = useRouter();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      router.replace("/");
+    }
+  }, [user, isUserLoading, router]);
 
   const handleLogin = () => {
-    if (login === "BSSI" && password === "bssi") {
-      sessionStorage.setItem("isAuthenticated", "true");
-      router.replace("/");
-    } else {
-      setError("Login ou mot de passe incorrect.");
-    }
+    initiateAnonymousSignIn(auth);
   };
+  
+  if (isUserLoading || user) {
+      return (
+          <div className="flex min-h-screen items-center justify-center bg-background">
+              <p>Chargement...</p>
+          </div>
+      )
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-           <div className="flex justify-center items-center mb-4">
+      <Card className="w-full max-w-sm text-center">
+        <CardHeader>
+          <div className="flex justify-center items-center mb-4">
             <div className="flex size-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Swords className="size-8" />
+              <Swords className="size-8" />
             </div>
           </div>
           <CardTitle className="text-2xl">eBrigade-BSSI</CardTitle>
           <CardDescription>
-            Veuillez vous connecter pour accéder au panneau d'administration.
+            Système de Gestion des Agents et Missions
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="grid gap-2">
-            <Label htmlFor="login">Login</Label>
-            <Input
-              id="login"
-              type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
+        <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+                Cliquez sur le bouton ci-dessous pour accéder au panneau d'administration.
+            </p>
           <Button className="w-full" onClick={handleLogin}>
-            Se connecter
+            Accéder à l'application
           </Button>
-        </CardFooter>
+        </CardContent>
       </Card>
     </div>
   );

@@ -3,10 +3,10 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
-import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { useAuth } from "@/firebase";
 
 const getTitle = (pathname: string) => {
   if (pathname.startsWith("/agents")) return "Gestion des Agents";
@@ -17,9 +17,10 @@ const getTitle = (pathname: string) => {
 export function AppHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const auth = useAuth();
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("isAuthenticated");
+  const handleLogout = async () => {
+    await auth.signOut();
     router.replace("/login");
   };
 

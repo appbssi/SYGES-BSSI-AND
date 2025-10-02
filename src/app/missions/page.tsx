@@ -4,23 +4,25 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MainLayout } from "@/components/layout/main-layout";
 import { MissionsClient } from "@/components/missions/missions-client";
-import { FirebaseClientProvider } from "@/firebase";
+import { useUser } from "@/firebase";
 
 export default function MissionsPage() {
   const router = useRouter();
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem("isAuthenticated");
-    if (isAuthenticated !== "true") {
+    if (!isUserLoading && !user) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !user) {
+    return <div className="flex h-screen items-center justify-center">Chargement...</div>;
+  }
 
   return (
-    <FirebaseClientProvider>
       <MainLayout>
         <MissionsClient />
       </MainLayout>
-    </FirebaseClientProvider>
   );
 }

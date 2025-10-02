@@ -116,7 +116,7 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
             </div>
           </div>
           <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="description" className="text-right mt-2">Détails</Label>
+            <Label htmlFor="description" className="text-right mt-2">Description</Label>
              <div className="col-span-3">
                <Controller
                 name="description"

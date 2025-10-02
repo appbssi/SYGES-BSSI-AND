@@ -1,12 +1,15 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import { FirebaseClientProvider } from "@/firebase";
 
-import type {Metadata} from 'next';
-import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
-import { ThemeProvider } from '@/components/theme-provider';
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: 'eBrigade',
-  description: 'Système de Gestion des Agents Militaires',
+  title: "eBrigade",
+  description: "Système de Gestion des Agents Militaires",
 };
 
 export default function RootLayout({
@@ -16,16 +19,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head />
-      <body>
+      <body className={inter.className}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
+          <FirebaseClientProvider>
             {children}
-          <Toaster />
+            <Toaster />
+          </FirebaseClientProvider>
         </ThemeProvider>
       </body>
     </html>
