@@ -1,0 +1,113 @@
+/**
+ * @fileoverview Firestore Security Rules for the Military Agent and Mission Management System.
+ *
+ * Core Philosophy:
+ * This ruleset implements a hybrid security model. The top-level collections for `/agents` and `/missions` are publicly readable, but writes are restricted to admin users. The `/agents/{agentId}/missions/{missionId}` subcollection uses ownership to ensure only the assigned agent can manage their mission assignments.
+ *
+ * Data Structure:
+ * - /agents/{agentId}: Stores agent information.
+ * - /missions/{missionId}: Stores mission details.
+ * - /agents/{agentId}/missions/{missionId}: Represents the assignment of an agent to a mission. Denormalized data is used to avoid additional reads for access control.
+ *
+ * Key Security Decisions:
+ * - Public Read Access: The `/agents` and `/missions` collections are readable by any user, signed in or not.
+ * - Admin-Only Writes: Only authenticated admins can create, update, or delete agents and missions. The logic for determining who is an admin is TBD (TODO).
+ * - Ownership for AgentMissions: Only the assigned agent (identified by {agentId}) can manage their own mission assignments.
+ * - No User Listing: Listing all users is not permitted to prevent unauthorized data access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Rules for the /agents collection. Allows public read access, but restricts write access to authenticated admins.
+     * @path /agents/{agentId}
+     * @allow get, list: if true;
+     * @allow create: if false; // TODO: Implement admin role check
+     * @allow update: if false; // TODO: Implement admin role check
+     * @allow delete: if false; // TODO: Implement admin role check
+     * @principle Allows public read, restricts writes to admins.
+     */
+    match /agents/{agentId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource.data.id == request.resource.data.id;
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /missions collection. Allows public read access, but restricts write access to authenticated admins.
+     * @path /missions/{missionId}
+     * @allow get, list: if true;
+     * @allow create: if false; // TODO: Implement admin role check
+     * @allow update: if false; // TODO: Implement admin role check
+     * @allow delete: if false; // TODO: Implement admin role check
+     * @principle Allows public read, restricts writes to admins.
+     */
+    match /missions/{missionId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource.data.id == request.resource.data.id;
+      allow delete: if isAdmin();
+    }
+
+    /**
+     * @description Rules for the /agents/{agentId}/missions/{missionId} collection. Allows the agent to manage their assigned missions.
+     * @path /agents/{agentId}/missions/{missionId}
+     * @allow get: if isOwner(agentId);
+     * @allow list: if isOwner(agentId);
+     * @allow create: if isOwner(agentId) && request.resource.data.agentId == agentId;
+     * @allow update: if isExistingOwner(agentId) && resource.data.agentId == request.resource.data.agentId;
+     * @allow delete: if isExistingOwner(agentId);
+     * @principle Enforces ownership: only the agent can manage their mission assignments.
+     */
+    match /agents/{agentId}/missions/{missionId} {
+      allow get: if isOwner(agentId);
+      allow list: if isOwner(agentId);
+      allow create: if isOwner(agentId) && request.resource.data.agentId == agentId;
+      allow update: if isExistingOwner(agentId) && resource.data.agentId == request.resource.data.agentId;
+      allow delete: if isExistingOwner(agentId);
+    }
+
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the user is signed in.
+     * @return {bool} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the user is the owner of the document (agentId matches the authenticated user's ID).
+     * @param {string} agentId The agent's user ID.
+     * @return {bool} True if the user is the owner, false otherwise.
+     */
+    function isOwner(agentId) {
+      return isSignedIn() && request.auth.uid == agentId;
+    }
+
+     /**
+      * @description Checks if the user is the owner of the existing document.
+      * @param {string} agentId The agent's user ID.
+      * @return {bool} True if the user is the owner, false otherwise.
+      */
+    function isExistingOwner(agentId) {
+      return isOwner(agentId) && resource != null;
+    }
+
+    /**
+     * @description Checks if the user is an admin.
+     * @return {bool} True if the user is an admin, false otherwise.
+     * @note This is a placeholder; the actual implementation will depend on how admin status is managed (e.g., custom claims, a separate collection).
+     */
+    function isAdmin() {
+      // TODO: Implement the admin role check. This could involve checking for a specific claim
+      // in the user's token (request.auth.token.isAdmin == true) or querying a database of admins.
+      return false;
+    }
+  }
+}
