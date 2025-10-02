@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { StatCard } from "./stat-card";
 import { Users, Target, UserCheck, UserX } from "lucide-react";
@@ -29,6 +30,11 @@ export function DashboardClient({
   agents: Agent[];
   missions: Mission[];
 }) {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const stats = useMemo(() => {
     const now = new Date();
     const activeMissions = missions.filter(
@@ -50,6 +56,10 @@ export function DashboardClient({
       }))
     };
   }, [agents, missions]);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">

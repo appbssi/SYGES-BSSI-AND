@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 import type { Mission } from "@/lib/types";
@@ -42,26 +42,39 @@ export function MissionForm({ isOpen, setIsOpen, mission }: MissionFormProps) {
   const formAction = mission ? (() => {}) : createMissionAction; // No update action for now
   const [state, dispatch] = useFormState(formAction, initialState);
   const { toast } = useToast();
+    const [defaultStartDate, setDefaultStartDate] = useState(new Date());
+    const [defaultEndDate, setDefaultEndDate] = useState(new Date());
+
 
   const startDate = watch("startDate");
   const endDate = watch("endDate");
   const priority = watch("priority");
 
   useEffect(() => {
+    const today = new Date();
+    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    setDefaultStartDate(today);
+    setDefaultEndDate(nextWeek);
+  }, []);
+
+  useEffect(() => {
     if (!isOpen) {
       reset();
     } else if (mission) {
-      reset({ ...mission });
+      reset({ ...mission, 
+        startDate: new Date(mission.startDate),
+        endDate: new Date(mission.endDate),
+      });
     } else {
       reset({
         name: '',
         details: '',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        startDate: defaultStartDate,
+        endDate: defaultEndDate,
         priority: 3,
       });
     }
-  }, [isOpen, mission, reset]);
+  }, [isOpen, mission, reset, defaultStartDate, defaultEndDate]);
   
   const onFormSubmit = (data: any) => {
     const formData = new FormData();
