@@ -36,6 +36,15 @@ export function DashboardClient({
   }, []);
 
   const stats = useMemo(() => {
+    if (!isClient) {
+        return {
+            totalAgents: agents.length,
+            availableAgents: 0,
+            busyAgents: 0,
+            activeMissionsCount: 0,
+            activeMissionsList: [],
+        };
+    }
     const now = new Date();
     const activeMissions = missions.filter(
       (m) => new Date(m.startDate) <= now && new Date(m.endDate) >= now
@@ -55,7 +64,7 @@ export function DashboardClient({
           agents: m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[],
       }))
     };
-  }, [agents, missions]);
+  }, [agents, missions, isClient]);
 
   if (!isClient) {
     return null;
