@@ -34,23 +34,30 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
   const [suggestedNotesLoading, setSuggestedNotesLoading] = useState<string | null>(null);
   const [optimizedResult, setOptimizedResult] = useState<OptimizedMissionAssignmentOutput | null>(null);
 
+  const getMissionStatus = (mission: Mission) => {
+    const now = new Date();
+    if (new Date(mission.endDate) < now) return "Terminée";
+    if (new Date(mission.startDate) > now) return "À venir";
+    return "Active";
+  }
+
   const handleOptimize = async () => {
     setIsLoading(true);
     setOptimizedResult(null);
 
     const now = new Date();
-    // Pour cette démo, la disponibilité des agents est simplifiée : ils sont disponibles s'ils ne sont pas en mission active.
+
     const agentAvailability = agents.map(agent => ({
         agentId: agent.id,
-        availability: [{ start: now.toISOString(), end: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString() }], // Simplifié : disponible pour l'année prochaine
+        availability: [{ start: now.toISOString(), end: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString() }],
         skills: agent.skills,
         currentMissions: missions
-            .filter(m => m.agentId === agent.id)
-            .map(m => ({ missionId: m.id, start: m.startDate, end: m.endDate }))
+            .filter(m => m.agentId === agent.id && getMissionStatus(m) === 'Active')
+            .map(m => ({ missionId: m.id, start: new Date(m.startDate).toISOString(), end: new Date(m.endDate).toISOString() }))
     }));
 
-    const missionsToAssign = missions.filter(m => !m.agentId || getMissionStatus(m) !== 'Terminée' );
-
+    const missionsToAssign = missions.filter(m => getMissionStatus(m) !== 'Terminée' );
+    
     try {
       const result = await optimizeMissionAssignment({
         agents: agentAvailability,
@@ -58,8 +65,8 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
             missionId: m.id,
             priority: m.priority,
             requiredSkills: m.requiredSkills,
-            startTime: m.startDate,
-            endTime: m.endDate,
+            startTime: new Date(m.startDate).toISOString(),
+            endTime: new Date(m.endDate).toISOString(),
         })),
       });
       setOptimizedResult(result);
@@ -121,12 +128,6 @@ export function MissionAssignmentDialog({ isOpen, setIsOpen, agents, missions }:
     setIsOpen(false);
     toast({ title: 'Assignations Enregistrées', description: 'Le tableau des missions a été mis à jour.' });
   };
-  
-  const getMissionStatus = (mission: Mission) => {
-    const now = new Date();
-    if (new Date(mission.endDate) < now) return "Terminée";
-    return "En attente";
-  }
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
