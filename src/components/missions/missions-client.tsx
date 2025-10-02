@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, Download, MoreHorizontal, Plus, Trash2, UserPlus, Users, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
+import { Check, Download, MoreHorizontal, Plus, Trash2, UserPlus, Users, ChevronDown, FileSpreadsheet, FileText, CalendarClock } from "lucide-react";
 import { format } from "date-fns";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
 import {
@@ -43,6 +43,7 @@ import { fr } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { MissionForm } from "./mission-form";
 import { MissionAssignmentDialog } from "./mission-assignment-dialog";
+import { ExtendMissionDialog } from "./extend-mission-dialog";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection, missionDoc } from "@/firebase/firestore/missions";
@@ -60,6 +61,7 @@ export function MissionsClient() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+  const [isExtendDialogOpen, setIsExtendDialogOpen] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const { toast } = useToast();
   
@@ -143,6 +145,11 @@ export function MissionsClient() {
   const handleDelete = (mission: Mission) => {
     setSelectedMission(mission);
     setIsAlertOpen(true);
+  }
+
+  const handleExtend = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsExtendDialogOpen(true);
   }
   
   const handleAddNew = () => {
@@ -320,6 +327,12 @@ export function MissionsClient() {
                            </DropdownMenuPortal>
                         </DropdownMenuSub>
                         )}
+                        {mission.status !== 'Terminée' && (
+                           <DropdownMenuItem onClick={() => handleExtend(mission)}>
+                             <CalendarClock className="mr-2 h-4 w-4" />
+                             Prolonger
+                           </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => handleDelete(mission)} className="text-destructive">
                           <Trash2 className="mr-2 h-4 w-4" /> Annuler
@@ -353,6 +366,14 @@ export function MissionsClient() {
         missions={initialMissions}
       />
 
+      {selectedMission && (
+        <ExtendMissionDialog
+            isOpen={isExtendDialogOpen}
+            setIsOpen={setIsExtendDialogOpen}
+            mission={selectedMission}
+        />
+      )}
+
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -370,5 +391,3 @@ export function MissionsClient() {
     </>
   );
 }
-
-    
