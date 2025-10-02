@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from "react";
 import type { Agent, Mission } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,23 +19,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { AgentForm } from "./agent-form";
-import { Download, MoreHorizontal, Plus, Trash2, FilePenLine, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
+import { Download, ChevronDown, FileText, FileSpreadsheet } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
-import { deleteAgentAction } from "@/lib/actions";
-import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
@@ -49,10 +35,6 @@ export function AgentsClient() {
     setIsClient(true);
   }, []);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
-  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<"all" | "Disponible" | "Occupé">("all");
 
   const firestore = useFirestore();
@@ -94,33 +76,6 @@ export function AgentsClient() {
     if (statusFilter === 'all') return true;
     return agent.status === statusFilter;
   });
-
-  const handleEdit = (agent: Agent) => {
-    setSelectedAgent(agent);
-    setIsFormOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setSelectedAgent(null);
-    setIsFormOpen(true);
-  };
-  
-  const handleDelete = (agent: Agent) => {
-    setSelectedAgent(agent);
-    setIsAlertOpen(true);
-  }
-  
-  const confirmDelete = async () => {
-    if (selectedAgent) {
-      await deleteAgentAction(selectedAgent.id);
-      toast({
-        title: "Agent Supprimé",
-        description: `L'agent ${selectedAgent.firstName} ${selectedAgent.lastName} a été supprimé avec succès.`,
-      });
-      setIsAlertOpen(false);
-      setSelectedAgent(null);
-    }
-  }
 
   const handleExportCsv = () => {
     const dataToExport = filteredAgents.map(({ id, status, ...rest }) => ({
@@ -164,7 +119,6 @@ export function AgentsClient() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button onClick={handleAddNew}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
        <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="mb-4">
@@ -184,13 +138,12 @@ export function AgentsClient() {
                 <TableHead>Grade</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                     Chargement des données...
                   </TableCell>
                 </TableRow>
@@ -215,28 +168,11 @@ export function AgentsClient() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleEdit(agent)}>
-                            <FilePenLine className="mr-2 h-4 w-4" /> Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(agent)} className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
                 ))
                ) : (
                 <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.
                     </TableCell>
                 </TableRow>
@@ -245,27 +181,6 @@ export function AgentsClient() {
           </Table>
         </CardContent>
       </Card>
-      
-      <AgentForm 
-        isOpen={isFormOpen} 
-        setIsOpen={setIsFormOpen} 
-        agent={selectedAgent}
-      />
-
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Elle supprimera définitivement l'agent {selectedAgent?.firstName} {selectedAgent?.lastName} et le désassignera de toutes ses missions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">Supprimer</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
