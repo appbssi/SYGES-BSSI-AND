@@ -80,7 +80,8 @@ export function DashboardClient() {
       activeMissionsCount: activeMissions.length,
       activeMissionsList: activeMissions.map(m => ({
           ...m,
-          agents: m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[],
+          agents: (m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[])
+            .sort((a, b) => a.firstName.localeCompare(b.firstName)),
       }))
     };
   }, [agents, missions, isClient, user]);

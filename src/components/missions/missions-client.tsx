@@ -124,7 +124,8 @@ export function MissionsClient() {
     return initialMissions.map(
       (mission) => ({
         ...mission,
-        agents: mission.agentIds.map(id => initialAgents.find((a) => a.id === id)).filter(Boolean) as Agent[],
+        agents: (mission.agentIds.map(id => initialAgents.find((a) => a.id === id)).filter(Boolean) as Agent[])
+          .sort((a, b) => a.firstName.localeCompare(b.firstName)),
         status: isClient ? getMissionStatus(mission) : "Chargement..."
       })
     ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
