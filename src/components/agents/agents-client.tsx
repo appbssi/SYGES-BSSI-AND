@@ -64,10 +64,16 @@ export function AgentsClient() {
 
   const firestore = useFirestore();
 
-  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore) ? query(agentsCollection(firestore), orderBy("firstName"), orderBy("lastName")) : null, [firestore]);
+  const agentsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(agentsCollection(firestore), orderBy("firstName"), orderBy("lastName"));
+  }, [firestore, user]);
   const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
 
-  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const missionsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return missionsCollection(firestore);
+  }, [firestore, user]);
   const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
   
   const agents = agentsData || [];
@@ -308,3 +314,5 @@ export function AgentsClient() {
     </>
   );
 }
+
+    

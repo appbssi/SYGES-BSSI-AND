@@ -71,10 +71,16 @@ export function MissionsClient() {
   
   const firestore = useFirestore();
 
-  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const agentsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return agentsCollection(firestore);
+  }, [firestore, user]);
   const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
 
-  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const missionsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return missionsCollection(firestore);
+  }, [firestore, user]);
   const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
 
   const initialAgents = agentsData || [];
@@ -403,3 +409,5 @@ export function MissionsClient() {
     </>
   );
 }
+
+    

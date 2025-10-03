@@ -27,6 +27,7 @@ import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection } from "@/firebase/firestore/missions";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Badge } from "../ui/badge";
+import { useAuth } from "@/context/auth-context";
 
 export function DashboardClient() {
   const [isClient, setIsClient] = useState(false);
@@ -35,11 +36,18 @@ export function DashboardClient() {
   }, []);
 
   const firestore = useFirestore();
+  const { user } = useAuth();
 
-  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const agentsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return agentsCollection(firestore);
+  }, [firestore, user]);
   const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
 
-  const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
+  const missionsQuery = useMemoFirebase(() => {
+      if (!firestore || !user) return null;
+      return missionsCollection(firestore);
+  }, [firestore, user]);
   const { data: missionsData, isLoading: missionsLoading } = useCollection<Mission>(missionsQuery);
   
   const agents = agentsData || [];
@@ -153,3 +161,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
