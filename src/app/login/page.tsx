@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLogo } from "@/context/logo-context";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const { toast } = useToast();
+  const { logo } = useLogo();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -57,7 +58,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
             <div className="flex size-24 items-center justify-center rounded-lg bg-background">
-              <Shield className="h-16 w-16" />
+              {logo}
             </div>
           </div>
           <CardTitle className="text-2xl">eBrigade-BSSI</CardTitle>

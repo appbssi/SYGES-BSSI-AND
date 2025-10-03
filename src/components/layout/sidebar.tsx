@@ -9,16 +9,19 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Shield, Home, Users, Target, LogOut } from "lucide-react";
+import { Home, Users, Target, LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/auth-context";
+import { useLogo } from "@/context/logo-context";
+import { LogoUploader } from "../logo-uploader";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const { logo, isDefaultLogo } = useLogo();
 
   const handleLogout = async () => {
     logout();
@@ -31,8 +34,9 @@ export function AppSidebar() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <div className="flex size-9 items-center justify-center rounded-lg">
-            <Shield className="size-6" />
+          <div className="flex size-9 items-center justify-center rounded-lg relative">
+            {isDefaultLogo ? <Shield className="size-6" /> : <img src={(logo as React.ReactElement).props.src} alt="logo" className="h-9 w-9 object-contain" />}
+            <LogoUploader />
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>
         </div>
