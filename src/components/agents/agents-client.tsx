@@ -41,6 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { deleteDoc, writeBatch } from "firebase/firestore";
 import { AgentImportDialog } from "./agent-import-dialog";
+import { orderBy, query } from "firebase/firestore";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
@@ -63,7 +64,7 @@ export function AgentsClient() {
 
   const firestore = useFirestore();
 
-  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore), [firestore]);
+  const agentsQuery = useMemoFirebase(() => agentsCollection(firestore) ? query(agentsCollection(firestore), orderBy("firstName"), orderBy("lastName")) : null, [firestore]);
   const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
 
   const missionsQuery = useMemoFirebase(() => missionsCollection(firestore), [firestore]);
