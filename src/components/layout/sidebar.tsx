@@ -112,9 +112,8 @@ export function AppSidebar() {
             />
             <Label className="text-xs text-muted-foreground">Personnaliser l'icône</Label>
              <div className="flex items-center gap-2 mt-1">
-                <Button variant="outline" size="sm" className="w-full" onClick={triggerFileSelect}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Changer
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={triggerFileSelect} title="Changer l'icône">
+                  <Upload className="h-4 w-4" />
                 </Button>
                 {logo && (
                   <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={clearLogo} title="Réinitialiser l'icône">
