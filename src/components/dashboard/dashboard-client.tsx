@@ -81,7 +81,7 @@ export function DashboardClient() {
       activeMissionsList: activeMissions.map(m => ({
           ...m,
           agents: (m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[])
-            .sort((a, b) => a.firstName.localeCompare(b.firstName)),
+            .sort((a, b) => (a.firstName || "").localeCompare(b.firstName || "")),
       }))
     };
   }, [agents, missions, isClient, user]);
@@ -105,38 +105,38 @@ export function DashboardClient() {
         />
       </div>
       <div className="grid gap-6 md:grid-cols-1">
-        <Card>
+        <Card className="bg-primary text-primary-foreground">
           <CardHeader>
             <CardTitle>Missions Actives</CardTitle>
-            <CardDescription>Missions actuellement en cours.</CardDescription>
+            <CardDescription className="text-primary-foreground/80">Missions actuellement en cours.</CardDescription>
           </CardHeader>
           <CardContent>
              {isLoading && (!missionsData || !agentsData) ? (
-              <div className="text-center text-muted-foreground py-8">Chargement...</div>
+              <div className="text-center text-primary-foreground/80 py-8">Chargement...</div>
             ) : (
               <Table>
                   <TableHeader>
-                      <TableRow>
-                          <TableHead>Mission</TableHead>
-                          <TableHead>Agents</TableHead>
-                          <TableHead>Se termine le</TableHead>
+                      <TableRow className="border-primary-foreground/30">
+                          <TableHead className="text-primary-foreground">Mission</TableHead>
+                          <TableHead className="text-primary-foreground">Agents</TableHead>
+                          <TableHead className="text-primary-foreground">Se termine le</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {stats.activeMissionsList.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">Aucune mission active</TableCell></TableRow>}
+                      {stats.activeMissionsList.length === 0 && <TableRow className="border-primary-foreground/30 hover:bg-primary/90"><TableCell colSpan={3} className="text-center text-primary-foreground/80 py-8">Aucune mission active</TableCell></TableRow>}
                       {stats.activeMissionsList.map(mission => (
-                          <TableRow key={mission.id}>
+                          <TableRow key={mission.id} className="border-primary-foreground/30 hover:bg-primary/90">
                               <TableCell className="font-medium">{mission.name}</TableCell>
                               <TableCell>
                                   {mission.agents.length > 0 ? (
                                     <Popover>
                                       <PopoverTrigger asChild>
-                                        <Badge variant="outline" className="cursor-pointer">
+                                        <Badge variant="secondary" className="cursor-pointer bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground">
                                           <Users className="mr-2 h-3 w-3" />
                                           {mission.agents.length} agent(s)
                                         </Badge>
                                       </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0">
+                                      <PopoverContent className="w-auto p-0 bg-background text-foreground">
                                         <div className="space-y-2 p-4">
                                           <h4 className="font-medium leading-none">Agents Assignés</h4>
                                           <ScrollArea className="h-48">
