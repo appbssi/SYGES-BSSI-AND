@@ -42,7 +42,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="flex size-24 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex size-24 items-center justify-center rounded-lg bg-black text-white">
                {logo ? (
                   <Image src={logo} alt="Logo" width={64} height={64} className="rounded-lg object-contain" />
                 ) : (
