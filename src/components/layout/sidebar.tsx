@@ -10,20 +10,19 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Shield, Home, Users, Target, LogOut, Upload, XCircle } from "lucide-react";
+import { Shield, Home, Users, Target, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/auth-context";
 import { useLogo } from "@/context/logo-context";
 import Image from "next/image";
-import { Label } from "../ui/label";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-  const { logo, setLogo, clearLogo } = useLogo();
+  const { logo, isLoading } = useLogo();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogout = async () => {
@@ -31,33 +30,17 @@ export function AppSidebar() {
     router.replace("/login");
   };
 
-  const handleIconUpload = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === "string") {
-          setLogo(result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const triggerFileSelect = () => fileInputRef.current?.click();
-
   const isActive = (path: string) => pathname === path;
 
   return (
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex size-9 items-center justify-center rounded-lg">
              {logo ? (
-              <Image src={logo} alt="Custom Logo" width={20} height={20} className="object-contain" />
+              <Image src={logo} alt="Custom Logo" width={24} height={24} className="object-contain" />
             ) : (
-              <Shield className="size-5" />
+              <Shield className="size-6" />
             )}
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>
