@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useRef, type ChangeEvent } from "react";
 import {
   SidebarContent,
   SidebarHeader,
@@ -15,15 +14,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/auth-context";
-import { useLogo } from "@/context/logo-context";
 import Image from "next/image";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-  const { logo, isLoading } = useLogo();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logo = "/logo.png"; // Utilisation d'une URL statique
 
   const handleLogout = async () => {
     logout();

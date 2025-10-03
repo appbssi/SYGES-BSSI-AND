@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
-import { useLogo } from "@/context/logo-context";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -20,7 +19,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { logo } = useLogo();
+  const logo = "/logo.png"; // Utilisation d'une URL statique
 
   const handleLogin = () => {
     setIsLoading(true);
