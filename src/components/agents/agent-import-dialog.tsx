@@ -20,7 +20,7 @@ import { read, utils, WorkBook, WorkSheet } from "xlsx";
 import { Agent } from "@/lib/types";
 import { useFirestore } from "@/firebase";
 import { agentsCollection } from "@/firebase/firestore/agents";
-import { writeBatch, getDocs, query, where, collection } from "firebase/firestore";
+import { writeBatch, getDocs, query, where, collection, doc } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
@@ -245,3 +245,5 @@ export function AgentImportDialog({ isOpen, setIsOpen, existingAgents }: AgentIm
     </Dialog>
   );
 }
+
+    
