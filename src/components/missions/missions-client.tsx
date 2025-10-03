@@ -332,7 +332,7 @@ export function MissionsClient() {
                            </DropdownMenuSubTrigger>
                            <DropdownMenuPortal>
                                <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-                                  {initialAgents.map(agent => (
+                                  {[...initialAgents].sort((a, b) => a.firstName.localeCompare(b.firstName)).map(agent => (
                                      <DropdownMenuItem 
                                         key={agent.id} 
                                         onSelect={(e) => e.preventDefault()} 
