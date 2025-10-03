@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { Shield } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,15 +39,8 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="flex size-24 items-center justify-center rounded-lg bg-primary/10 text-primary-foreground">
-               <Image 
-                src="https://i.imgur.com/iRDRWk6.jpeg" 
-                alt="Logo eBrigade"
-                width={100}
-                height={100}
-                className="rounded-full"
-                data-ai-hint="brigade emblem crocodile"
-              />
+            <div className="flex size-24 items-center justify-center rounded-lg bg-primary/10 text-primary">
+               <Shield className="h-16 w-16" />
             </div>
           </div>
           <CardTitle className="text-2xl">eBrigade-BSSI</CardTitle>
