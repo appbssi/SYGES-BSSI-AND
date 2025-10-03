@@ -66,7 +66,7 @@ export function AgentsClient() {
 
   const agentsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return query(agentsCollection(firestore), orderBy("firstName"), orderBy("lastName"));
+    return query(agentsCollection(firestore), orderBy("firstName"));
   }, [firestore, user]);
   const { data: agentsData, isLoading: agentsLoading } = useCollection<Agent>(agentsQuery);
 
