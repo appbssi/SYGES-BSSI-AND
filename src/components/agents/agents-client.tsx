@@ -132,7 +132,15 @@ export function AgentsClient() {
     setIsFormOpen(true);
   };
   
-  const handleDelete = (agent: Agent) => {
+  const handleDelete = (agent: AgentWithStatus) => {
+    if (agent.status === "Occupé") {
+      toast({
+        variant: "destructive",
+        title: "Action Impossible",
+        description: "Vous ne pouvez pas supprimer un agent qui est actuellement en mission.",
+      });
+      return;
+    }
     setSelectedAgent(agent);
     setIsAlertOpen(true);
   };
