@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileText, FileSpreadsheet, Plus, MoreHorizontal, Trash2 } from "lucide-react";
+import { Download, ChevronDown, FileText, FileSpreadsheet, Plus, MoreHorizontal, Trash2, FileUp } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { deleteDoc, writeBatch } from "firebase/firestore";
+import { AgentImportDialog } from "./agent-import-dialog";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
@@ -49,6 +50,7 @@ export function AgentsClient() {
   
   const [isClient, setIsClient] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
@@ -173,6 +175,7 @@ export function AgentsClient() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Liste des Agents</h2>
         <div className="flex gap-2">
+           <Button variant="outline" onClick={() => setIsImportOpen(true)} disabled={isViewer}><FileUp className="mr-2" /> Importer</Button>
            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -245,7 +248,7 @@ export function AgentsClient() {
                           <Button variant="ghost" size="icon" disabled={isViewer}>
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Ouvrir le menu</span>
-                          </Button>
+                          </Button>                        
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
@@ -279,6 +282,12 @@ export function AgentsClient() {
         agent={null}
       />
       
+      <AgentImportDialog
+        isOpen={isImportOpen}
+        setIsOpen={setIsImportOpen}
+        existingAgents={agents}
+      />
+
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -298,5 +307,3 @@ export function AgentsClient() {
     </>
   );
 }
-
-    
