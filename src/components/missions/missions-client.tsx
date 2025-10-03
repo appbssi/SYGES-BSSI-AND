@@ -49,6 +49,7 @@ import { agentsCollection } from "@/firebase/firestore/agents";
 import { missionsCollection, missionDoc } from "@/firebase/firestore/missions";
 import { updateDoc, doc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "@/context/auth-context";
+import { ScrollArea } from "../ui/scroll-area";
 
 type MissionStatus = "Active" | "À venir" | "Terminée" | "Chargement...";
 type MissionWithAgents = Mission & { agents: Agent[], status: MissionStatus };
@@ -276,16 +277,18 @@ export function MissionsClient() {
                             {mission.agents.length} agent(s)
                           </Badge>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto">
-                          <div className="space-y-2">
+                        <PopoverContent className="w-auto p-0">
+                          <div className="space-y-2 p-4">
                             <h4 className="font-medium leading-none">Agents Assignés</h4>
-                            <div className="grid gap-2">
-                              {mission.agents.map(agent => agent && (
-                                <div key={agent.id} className="flex items-center gap-2">
-                                  <p>{agent.firstName} {agent.lastName} ({agent.rank})</p>
+                            <ScrollArea className="h-48">
+                                <div className="grid gap-2 pr-4">
+                                {mission.agents.map(agent => agent && (
+                                    <div key={agent.id} className="flex items-center gap-2">
+                                    <p>{agent.firstName} {agent.lastName} ({agent.rank})</p>
+                                    </div>
+                                ))}
                                 </div>
-                              ))}
-                            </div>
+                            </ScrollArea>
                           </div>
                         </PopoverContent>
                       </Popover>
@@ -410,5 +413,3 @@ export function MissionsClient() {
     </>
   );
 }
-
-    
