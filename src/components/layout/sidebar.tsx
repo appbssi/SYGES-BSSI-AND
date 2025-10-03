@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Home, Users, Target, LogOut, Shield } from "lucide-react";
+import { Home, Users, Target, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
@@ -21,7 +21,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-  const { logo, isDefaultLogo } = useLogo();
+  const { logo } = useLogo();
 
   const handleLogout = async () => {
     logout();

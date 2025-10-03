@@ -13,22 +13,18 @@ interface LogoContextType {
 
 const LogoContext = createContext<LogoContextType | undefined>(undefined);
 
-const DefaultLogo = () => <Shield className="h-full w-full" />;
-
 export const LogoProvider = ({ children }: { children: ReactNode }) => {
   const [logoUrl, setLogoUrlState] = useState<string | null>(null);
   const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs only on the client, after hydration.
-    // This prevents a server/client mismatch.
     setIsLogoLoading(true);
     try {
       const storedLogo = localStorage.getItem('app-logo');
       if (storedLogo) {
         setLogoUrlState(storedLogo);
       } else {
-        setLogoUrlState(null); // Ensure state is reset if item is removed
+        setLogoUrlState(null);
       }
     } catch (error) {
       console.error("Failed to load logo from localStorage", error);
@@ -56,11 +52,8 @@ export const LogoProvider = ({ children }: { children: ReactNode }) => {
   
   const isDefault = !logoUrl;
 
-  // During server render and initial client render, always show the default logo
-  // to prevent hydration mismatch. The actual logo will be shown after the
-  // useEffect hook runs on the client.
   const logoComponent = (isLogoLoading || !logoUrl)
-    ? <DefaultLogo />
+    ? <Shield className="h-full w-full" />
     : <img src={logoUrl} alt="logo" className="h-full w-full object-contain" />;
   
   return (
