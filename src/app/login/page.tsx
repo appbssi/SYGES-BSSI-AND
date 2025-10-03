@@ -19,7 +19,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const logo = "/logo.png"; // Utilisation d'une URL statique
+  const logo = "https://i.imgur.com/Oiqy7o5.png"; // Utilisation d'une URL statique
 
   const handleLogin = () => {
     setIsLoading(true);

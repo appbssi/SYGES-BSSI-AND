@@ -20,7 +20,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-  const logo = "/logo.png"; // Utilisation d'une URL statique
+  const logo = "https://i.imgur.com/Oiqy7o5.png"; // Utilisation d'une URL statique
 
   const handleLogout = async () => {
     logout();
