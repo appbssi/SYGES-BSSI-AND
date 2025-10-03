@@ -342,7 +342,10 @@ export function MissionsClient() {
                                          <div className="w-4 mr-2">
                                             {mission.agentIds.includes(agent.id) && <Check className="h-4 w-4" />}
                                          </div>
-                                         {agent.firstName} {agent.lastName}
+                                         <div className="flex flex-col">
+                                            <span>{agent.firstName} {agent.lastName}</span>
+                                            <span className="text-xs text-muted-foreground">{agent.contactNumber}</span>
+                                         </div>
                                      </DropdownMenuItem>
                                   ))}
                                </DropdownMenuSubContent>
