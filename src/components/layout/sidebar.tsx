@@ -35,7 +35,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <div className="flex size-9 items-center justify-center rounded-lg relative">
-            {logo}
+            <div className="h-6 w-6">{logo}</div>
             <LogoUploader />
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>

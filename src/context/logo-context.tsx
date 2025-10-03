@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Shield } from 'lucide-react';
 
 interface LogoContextType {
@@ -13,13 +13,14 @@ interface LogoContextType {
 
 const LogoContext = createContext<LogoContextType | undefined>(undefined);
 
-const DefaultLogo = ({size = 16}: {size?: number}) => <Shield className={`h-${size} w-${size}`} />;
+const DefaultLogo = () => <Shield className="h-full w-full" />;
 
 export const LogoProvider = ({ children }: { children: ReactNode }) => {
   const [logoUrl, setLogoUrlState] = useState<string | null>(null);
   const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   useEffect(() => {
+    setIsLogoLoading(true);
     try {
       const storedLogo = localStorage.getItem('app-logo');
       if (storedLogo) {
@@ -45,15 +46,20 @@ export const LogoProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Failed to save logo to localStorage", error);
     } finally {
-        setIsLogoLoading(false);
+      setIsLogoLoading(false);
     }
   };
 
   const isDefault = !logoUrl;
-  const loginLogo = logoUrl ? <img src={logoUrl} alt="logo" className="h-24 w-24 object-contain rounded-lg" /> : <DefaultLogo size={16} />;
+  
+  const logoComponent = isLogoLoading
+    ? null // Render nothing during loading to prevent mismatch
+    : logoUrl
+    ? <img src={logoUrl} alt="logo" className="h-full w-full object-contain" />
+    : <DefaultLogo />;
   
   return (
-    <LogoContext.Provider value={{ logo: loginLogo, setLogoUrl, isDefaultLogo: isDefault, isLogoLoading }}>
+    <LogoContext.Provider value={{ logo: logoComponent, setLogoUrl, isDefaultLogo: isDefault, isLogoLoading }}>
       {children}
     </LogoContext.Provider>
   );
@@ -64,30 +70,5 @@ export const useLogo = () => {
   if (context === undefined) {
     throw new Error('useLogo must be used within a LogoProvider');
   }
-  const { logo: loginLogo, isLogoLoading, setLogoUrl: setCtxLogoUrl, isDefaultLogo } = context;
-
-  const [logoUrl, setLogoUrlState] = useState<string | null>(null);
-
-  useEffect(() => {
-      try {
-        const storedLogo = localStorage.getItem('app-logo');
-        if (storedLogo) {
-          setLogoUrlState(storedLogo);
-        } else {
-          setLogoUrlState(null);
-        }
-      } catch (e) {}
-  }, [isLogoLoading]);
-
-
-  const sidebarLogo = logoUrl ? <img src={logoUrl} alt="logo" className="h-6 w-6 object-contain" /> : <DefaultLogo size={6} />;
-  
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-
-  return {
-      logo: pathname === '/login' ? loginLogo : sidebarLogo,
-      isLogoLoading,
-      setLogoUrl: setCtxLogoUrl,
-      isDefaultLogo,
-  };
+  return context;
 };
