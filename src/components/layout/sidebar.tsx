@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useRef, type ChangeEvent } from "react";
 import {
   SidebarContent,
   SidebarHeader,
@@ -9,21 +10,42 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Shield, Home, Users, Target, LogOut } from "lucide-react";
+import { Shield, Home, Users, Target, LogOut, Upload, XCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/auth-context";
+import { useLogo } from "@/context/logo-context";
+import Image from "next/image";
+import { Label } from "../ui/label";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const { logo, setLogo, clearLogo } = useLogo();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogout = async () => {
     logout();
     router.replace("/login");
   };
+
+  const handleIconUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result;
+        if (typeof result === "string") {
+          setLogo(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileSelect = () => fileInputRef.current?.click();
 
   const isActive = (path: string) => pathname === path;
 
@@ -32,7 +54,11 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Shield className="size-5" />
+             {logo ? (
+              <Image src={logo} alt="Custom Logo" width={20} height={20} className="object-contain" />
+            ) : (
+              <Shield className="size-5" />
+            )}
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>
         </div>
@@ -75,6 +101,29 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
+          <li className="px-2 mt-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleIconUpload}
+            />
+            <Label className="text-xs text-muted-foreground">Personnaliser l'icône</Label>
+             <div className="flex items-center gap-2 mt-1">
+                <Button variant="outline" size="sm" className="w-full" onClick={triggerFileSelect}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Changer
+                </Button>
+                {logo && (
+                  <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={clearLogo} title="Réinitialiser l'icône">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
+            </div>
+          </li>
+          
         </SidebarMenu>
       </SidebarContent>
        <SidebarFooter>

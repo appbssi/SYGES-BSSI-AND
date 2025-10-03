@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { FirebaseClientProvider } from "@/firebase";
+import { LogoProvider } from "@/context/logo-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,7 +32,9 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <AuthProvider>
-              {children}
+              <LogoProvider>
+                {children}
+              </LogoProvider>
               <Toaster />
             </AuthProvider>
           </FirebaseClientProvider>
