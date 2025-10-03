@@ -20,11 +20,15 @@ export const LogoProvider = ({ children }: { children: ReactNode }) => {
   const [isLogoLoading, setIsLogoLoading] = useState(true);
 
   useEffect(() => {
+    // This effect runs only on the client, after hydration.
+    // This prevents a server/client mismatch.
     setIsLogoLoading(true);
     try {
       const storedLogo = localStorage.getItem('app-logo');
       if (storedLogo) {
         setLogoUrlState(storedLogo);
+      } else {
+        setLogoUrlState(null); // Ensure state is reset if item is removed
       }
     } catch (error) {
       console.error("Failed to load logo from localStorage", error);
@@ -49,14 +53,15 @@ export const LogoProvider = ({ children }: { children: ReactNode }) => {
       setIsLogoLoading(false);
     }
   };
-
-  const isDefault = !logoUrl;
   
-  const logoComponent = isLogoLoading
-    ? null // Render nothing during loading to prevent mismatch
-    : logoUrl
-    ? <img src={logoUrl} alt="logo" className="h-full w-full object-contain" />
-    : <DefaultLogo />;
+  const isDefault = !logoUrl;
+
+  // During server render and initial client render, always show the default logo
+  // to prevent hydration mismatch. The actual logo will be shown after the
+  // useEffect hook runs on the client.
+  const logoComponent = (isLogoLoading || !logoUrl)
+    ? <DefaultLogo />
+    : <img src={logoUrl} alt="logo" className="h-full w-full object-contain" />;
   
   return (
     <LogoContext.Provider value={{ logo: logoComponent, setLogoUrl, isDefaultLogo: isDefault, isLogoLoading }}>
