@@ -11,7 +11,7 @@ export function MainLayout({ children }: { children: ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="p-4 sm:p-6 lg:p-8 bg-white dark:bg-background">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
