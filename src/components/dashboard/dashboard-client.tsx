@@ -142,7 +142,7 @@ export function DashboardClient() {
                                             <div className="grid gap-2 pr-4">
                                                 {mission.agents.map(agent => agent && (
                                                 <div key={agent.id} className="flex items-center gap-2">
-                                                    <p>{agent.firstName} {agent.lastName} ({agent.rank})</p>
+                                                    <p>{agent.firstName} {agent.lastName} ({agent.rank}) - {agent.contactNumber}</p>
                                                 </div>
                                                 ))}
                                             </div>
