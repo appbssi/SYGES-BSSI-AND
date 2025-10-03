@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileText, FileSpreadsheet, Plus, MoreHorizontal, Trash2, FileUp } from "lucide-react";
+import { Download, ChevronDown, FileText, FileSpreadsheet, Plus, MoreHorizontal, Trash2, FileUp, Search } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
@@ -42,6 +42,7 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteDoc, writeBatch } from "firebase/firestore";
 import { AgentImportDialog } from "./agent-import-dialog";
 import { orderBy, query } from "firebase/firestore";
+import { Input } from "../ui/input";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
@@ -55,6 +56,7 @@ export function AgentsClient() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -103,10 +105,19 @@ export function AgentsClient() {
     }));
   }, [agentsData, missions, isClient, user]);
   
-  const filteredAgents = agentsWithStatus.filter(agent => {
-    if (statusFilter === 'all') return true;
-    return agent.status === statusFilter;
-  });
+  const filteredAgents = useMemo(() => {
+    return agentsWithStatus.filter(agent => {
+      const matchesStatus = statusFilter === 'all' || agent.status === statusFilter;
+      
+      const matchesSearch = searchQuery === "" ||
+        `${agent.firstName} ${agent.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        agent.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        agent.rank.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        agent.contactNumber.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [agentsWithStatus, statusFilter, searchQuery]);
 
   const handleExportCsv = () => {
     const dataToExport = filteredAgents.map(({ id, status, ...rest }) => ({
@@ -209,13 +220,24 @@ export function AgentsClient() {
           <Button onClick={handleAddNew} disabled={isViewer}><Plus className="mr-2" /> Ajouter un Agent</Button>
         </div>
       </div>
-       <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)} className="mb-4">
-        <TabsList>
-          <TabsTrigger value="all">Tous</TabsTrigger>
-          <TabsTrigger value="Disponible">Disponibles</TabsTrigger>
-          <TabsTrigger value="Occupé">Occupés</TabsTrigger>
-        </TabsList>
-      </Tabs>
+       <div className="flex justify-between items-center mb-4 gap-4">
+        <Tabs value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+            <TabsList>
+            <TabsTrigger value="all">Tous</TabsTrigger>
+            <TabsTrigger value="Disponible">Disponibles</TabsTrigger>
+            <TabsTrigger value="Occupé">Occupés</TabsTrigger>
+            </TabsList>
+        </Tabs>
+        <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+            placeholder="Rechercher par nom, matricule..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+            />
+        </div>
+      </div>
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -282,7 +304,7 @@ export function AgentsClient() {
                ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                        Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.
+                        Aucun agent ne correspond à votre recherche.
                     </TableCell>
                 </TableRow>
               )}
@@ -322,5 +344,7 @@ export function AgentsClient() {
     </>
   );
 }
+
+    
 
     
