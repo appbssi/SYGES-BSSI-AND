@@ -119,6 +119,7 @@ export function MissionsClient() {
 
 
   const missionsWithAgents: MissionWithAgents[] = useMemo(() => {
+    if (!user) return [];
     return initialMissions.map(
       (mission) => ({
         ...mission,
@@ -126,7 +127,7 @@ export function MissionsClient() {
         status: isClient ? getMissionStatus(mission) : "Chargement..."
       })
     ).sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
-  }, [initialMissions, initialAgents, isClient]);
+  }, [initialMissions, initialAgents, isClient, user]);
   
   const handleExportCsv = () => {
     const dataToExport = missionsWithAgents.map(m => ({
@@ -256,7 +257,7 @@ export function MissionsClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isLoading && (!missionsData || !agentsData) ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                     Chargement des missions...

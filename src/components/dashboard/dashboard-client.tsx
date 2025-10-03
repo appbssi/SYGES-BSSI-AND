@@ -54,7 +54,7 @@ export function DashboardClient() {
   const missions = missionsData || [];
 
   const stats = useMemo(() => {
-    if (!isClient) {
+    if (!isClient || !user) {
         return {
             totalAgents: 0,
             availableAgents: 0,
@@ -82,23 +82,23 @@ export function DashboardClient() {
           agents: m.agentIds.map(agentId => agents.find(a => a.id === agentId)).filter(Boolean) as Agent[],
       }))
     };
-  }, [agents, missions, isClient]);
+  }, [agents, missions, isClient, user]);
   
   const isLoading = agentsLoading || missionsLoading;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Agents (Total)" value={isLoading ? "..." : stats.totalAgents} icon={Users} />
+        <StatCard title="Agents (Total)" value={isLoading && !agentsData ? "..." : stats.totalAgents} icon={Users} />
         <StatCard
           title="Agents Disponibles"
-          value={isLoading ? "..." : stats.availableAgents}
+          value={isLoading && !agentsData ? "..." : stats.availableAgents}
           icon={UserCheck}
         />
-        <StatCard title="Agents Occupés" value={isLoading ? "..." : stats.busyAgents} icon={UserX} />
+        <StatCard title="Agents Occupés" value={isLoading && !agentsData ? "..." : stats.busyAgents} icon={UserX} />
         <StatCard
           title="Missions Actives"
-          value={isLoading ? "..." : stats.activeMissionsCount}
+          value={isLoading && !missionsData ? "..." : stats.activeMissionsCount}
           icon={Target}
         />
       </div>
@@ -109,7 +109,7 @@ export function DashboardClient() {
             <CardDescription>Missions actuellement en cours.</CardDescription>
           </CardHeader>
           <CardContent>
-             {isLoading ? (
+             {isLoading && (!missionsData || !agentsData) ? (
               <div className="text-center text-muted-foreground py-8">Chargement...</div>
             ) : (
               <Table>

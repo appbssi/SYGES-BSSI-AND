@@ -91,17 +91,17 @@ export function AgentsClient() {
   };
 
   const agentsWithStatus: AgentWithStatus[] = useMemo(() => {
-    if (!isClient) {
-      return agents.map(agent => ({
+    if (!isClient || !user) {
+      return (agentsData || []).map(agent => ({
         ...agent,
         status: "Chargement..."
       }));
     }
-    return agents.map((agent) => ({
+    return (agentsData || []).map((agent) => ({
       ...agent,
       status: getAgentStatus(agent.id),
     }));
-  }, [agents, missions, isClient]);
+  }, [agentsData, missions, isClient, user]);
   
   const filteredAgents = agentsWithStatus.filter(agent => {
     if (statusFilter === 'all') return true;
@@ -222,7 +222,7 @@ export function AgentsClient() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
+              {isLoading && !agentsData ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     Chargement des données...
