@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
-import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +18,6 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const logo = "https://i.imgur.com/Oiqy7o5.png"; // Utilisation d'une URL statique
 
   const handleLogin = () => {
     setIsLoading(true);
@@ -42,11 +40,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
             <div className="flex size-24 items-center justify-center rounded-lg bg-background">
-               {logo ? (
-                  <Image src={logo} alt="Logo" width={64} height={64} className="rounded-lg object-contain" />
-                ) : (
-                  <Shield className="h-16 w-16" />
-                )}
+              <Shield className="h-16 w-16" />
             </div>
           </div>
           <CardTitle className="text-2xl">eBrigade-BSSI</CardTitle>
