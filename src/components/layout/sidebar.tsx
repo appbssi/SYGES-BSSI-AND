@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Swords, Home, Users, Target, LogOut } from "lucide-react";
+import { Shield, Home, Users, Target, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../ui/button";
@@ -32,7 +32,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Swords className="size-5" />
+            <Shield className="size-5" />
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>
         </div>
