@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -105,7 +104,7 @@ export function DashboardClient() {
         />
       </div>
       <div className="grid gap-6 md:grid-cols-1">
-        <Card className="bg-primary text-primary-foreground">
+        <Card className="bg-black text-primary-foreground shadow-[inset_4px_0_0_0_#4285F4]">
           <CardHeader>
             <CardTitle>Missions Actives</CardTitle>
             <CardDescription className="text-primary-foreground/80">Missions actuellement en cours.</CardDescription>
