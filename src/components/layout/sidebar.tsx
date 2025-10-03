@@ -35,7 +35,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2">
           <div className="flex size-9 items-center justify-center rounded-lg relative">
-            {isDefaultLogo ? <Shield className="size-6" /> : <img src={(logo as React.ReactElement).props.src} alt="logo" className="h-9 w-9 object-contain" />}
+            {logo}
             <LogoUploader />
           </div>
           <span className="text-lg font-semibold">eBrigade-BSSI</span>

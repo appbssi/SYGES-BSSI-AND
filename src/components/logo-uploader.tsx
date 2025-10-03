@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function LogoUploader() {
   const { user } = useAuth();
-  const { setLogoUrl, isDefaultLogo } = useLogo();
+  const { setLogoUrl, isDefaultLogo, isLogoLoading } = useLogo();
   const [isOpen, setIsOpen] = useState(false);
   const [logoUrlInput, setLogoUrlInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -30,9 +30,9 @@ export function LogoUploader() {
 
     setIsProcessing(true);
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const dataUrl = reader.result as string;
-      setLogoUrl(dataUrl);
+      await setLogoUrl(dataUrl);
       setIsProcessing(false);
       setIsOpen(false);
       toast({ title: 'Logo mis à jour', description: 'Le nouveau logo a été sauvegardé.' });
@@ -44,21 +44,23 @@ export function LogoUploader() {
     reader.readAsDataURL(file);
   };
   
-  const handleUrlSave = () => {
+  const handleUrlSave = async () => {
     if(!logoUrlInput) {
         toast({ variant: 'destructive', title: 'URL manquante', description: 'Veuillez entrer une URL.' });
         return;
     }
-    setLogoUrl(logoUrlInput);
+    await setLogoUrl(logoUrlInput);
     setIsOpen(false);
     toast({ title: 'Logo mis à jour', description: 'Le nouveau logo a été sauvegardé.' });
   }
 
-  const handleResetToDefault = () => {
-    setLogoUrl(null);
+  const handleResetToDefault = async () => {
+    await setLogoUrl(null);
     setIsOpen(false);
     toast({ title: 'Logo réinitialisé', description: 'Le logo par défaut a été restauré.' });
   }
+
+  const isLoading = isProcessing || isLogoLoading;
 
   return (
     <>
@@ -75,7 +77,7 @@ export function LogoUploader() {
           <DialogHeader>
             <DialogTitle>Personnaliser le Logo</DialogTitle>
             <DialogDescription>
-              Téléversez une nouvelle image ou utilisez une URL pour définir le logo de l'application.
+              Téléversez une nouvelle image ou utilisez une URL pour définir le logo de l'application. La sauvegarde est permanente.
             </DialogDescription>
           </DialogHeader>
 
@@ -87,22 +89,24 @@ export function LogoUploader() {
             <TabsContent value="upload" className="py-4">
                 <div className="grid w-full max-w-sm items-center gap-1.5">
                     <Label htmlFor="picture">Logo</Label>
-                    <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} disabled={isProcessing}/>
+                    <Input id="picture" type="file" accept="image/*" onChange={handleFileChange} disabled={isLoading}/>
                 </div>
-                {isProcessing && <div className="flex items-center justify-center mt-4"><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Traitement...</div>}
+                {isLoading && <div className="flex items-center justify-center mt-4"><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Traitement...</div>}
             </TabsContent>
             <TabsContent value="url" className="py-4">
                  <div className="space-y-2">
                     <Label htmlFor="logo-url">URL de l'image</Label>
                     <Input id="logo-url" value={logoUrlInput} onChange={(e) => setLogoUrlInput(e.target.value)} placeholder="https://example.com/logo.png" />
                  </div>
-                 <Button onClick={handleUrlSave} className="mt-4 w-full">Enregistrer l'URL</Button>
+                 <Button onClick={handleUrlSave} className="mt-4 w-full" disabled={isLoading}>
+                    {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Sauvegarde...</> : "Enregistrer l'URL"}
+                 </Button>
             </TabsContent>
           </Tabs>
 
           <DialogFooter className="sm:justify-between pt-4">
-            <Button variant="destructive" onClick={handleResetToDefault} disabled={isDefaultLogo}>
-                <Trash2 className="mr-2 h-4 w-4"/> Réinitialiser
+            <Button variant="destructive" onClick={handleResetToDefault} disabled={isDefaultLogo || isLoading}>
+                {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Réinitialisation...</> : <><Trash2 className="mr-2 h-4 w-4"/> Réinitialiser</>}
             </Button>
             <Button variant="ghost" onClick={() => setIsOpen(false)}>
               Fermer
