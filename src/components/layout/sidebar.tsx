@@ -101,28 +101,6 @@ export function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-
-          <li className="px-2 mt-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleIconUpload}
-            />
-            <Label className="text-xs text-muted-foreground">Personnaliser l'icône</Label>
-             <div className="flex items-center gap-2 mt-1">
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={triggerFileSelect} title="Changer l'icône">
-                  <Upload className="h-4 w-4" />
-                </Button>
-                {logo && (
-                  <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={clearLogo} title="Réinitialiser l'icône">
-                    <XCircle className="h-4 w-4 text-destructive" />
-                  </Button>
-                )}
-            </div>
-          </li>
-          
         </SidebarMenu>
       </SidebarContent>
        <SidebarFooter>
