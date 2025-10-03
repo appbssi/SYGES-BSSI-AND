@@ -20,14 +20,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, ChevronDown, FileText, FileSpreadsheet, Plus } from "lucide-react";
+import { Download, ChevronDown, FileText, FileSpreadsheet, Plus, MoreHorizontal, Trash2 } from "lucide-react";
 import { exportToCsv, exportToPdf } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { agentsCollection } from "@/firebase/firestore/agents";
-import { missionsCollection } from "@/firebase/firestore/missions";
+import { agentsCollection, agentDoc } from "@/firebase/firestore/agents";
+import { missionsCollection, missionDoc } from "@/firebase/firestore/missions";
 import { AgentForm } from "./agent-form";
 import { useAuth } from "@/context/auth-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { deleteDoc, writeBatch } from "firebase/firestore";
 
 type AgentWithStatus = Agent & { status: "Disponible" | "Occupé" | "Chargement..." };
 
@@ -37,6 +49,10 @@ export function AgentsClient() {
   
   const [isClient, setIsClient] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const { toast } = useToast();
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -106,6 +122,49 @@ export function AgentsClient() {
   const handleAddNew = () => {
     setIsFormOpen(true);
   };
+  
+  const handleDelete = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setIsAlertOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedAgent || !firestore) {
+      return;
+    }
+    try {
+      // 1. Delete the agent document
+      const agentRef = agentDoc(firestore, selectedAgent.id);
+      await deleteDoc(agentRef);
+
+      // 2. Remove the agent from all missions they are assigned to
+      const batch = writeBatch(firestore);
+      const missionsToUpdate = missions.filter(m => m.agentIds.includes(selectedAgent.id));
+
+      missionsToUpdate.forEach(mission => {
+        const missionRef = missionDoc(firestore, mission.id);
+        const updatedAgentIds = mission.agentIds.filter(id => id !== selectedAgent.id);
+        batch.update(missionRef, { agentIds: updatedAgentIds });
+      });
+
+      await batch.commit();
+
+      toast({
+        title: "Agent Supprimé",
+        description: `L'agent ${selectedAgent.firstName} ${selectedAgent.lastName} a été supprimé avec succès.`,
+      });
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de l'agent.",
+      });
+    } finally {
+      setIsAlertOpen(false);
+      setSelectedAgent(null);
+    }
+  };
 
   const isLoading = agentsLoading || missionsLoading;
 
@@ -149,12 +208,13 @@ export function AgentsClient() {
                 <TableHead>Grade</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                     Chargement des données...
                   </TableCell>
                 </TableRow>
@@ -179,11 +239,31 @@ export function AgentsClient() {
                         </Badge>
                       )}
                     </TableCell>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={isViewer}>
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Ouvrir le menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(agent)}
+                            className="text-destructive"
+                            disabled={isViewer}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))
                ) : (
                 <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         Aucun agent ne correspond au filtre &quot;{statusFilter}&quot;.
                     </TableCell>
                 </TableRow>
@@ -198,6 +278,25 @@ export function AgentsClient() {
         setIsOpen={setIsFormOpen} 
         agent={null}
       />
+      
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous absolument sûr?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. L'agent {selectedAgent?.firstName} {selectedAgent?.lastName} sera définitivement supprimé et retiré de toutes les missions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+
+    
