@@ -50,13 +50,7 @@ export const LogoProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isDefault = !logoUrl;
-
-  // This logic is tricky. The `logo` in context can't be one-size-fits-all.
-  // Let's provide both and let the consumer decide.
-  // For this simplified case, we will adapt based on what we had before.
-  // The login page had a large logo, sidebar a small one.
-
-  const loginLogo = logoUrl ? <img src={logoUrl} alt="logo" className="h-16 w-16 object-contain" /> : <DefaultLogo size={16} />;
+  const loginLogo = logoUrl ? <img src={logoUrl} alt="logo" className="h-24 w-24 object-contain rounded-lg" /> : <DefaultLogo size={16} />;
   
   return (
     <LogoContext.Provider value={{ logo: loginLogo, setLogoUrl, isDefaultLogo: isDefault, isLogoLoading }}>
@@ -79,6 +73,8 @@ export const useLogo = () => {
         const storedLogo = localStorage.getItem('app-logo');
         if (storedLogo) {
           setLogoUrlState(storedLogo);
+        } else {
+          setLogoUrlState(null);
         }
       } catch (e) {}
   }, [isLogoLoading]);
@@ -95,4 +91,3 @@ export const useLogo = () => {
       isDefaultLogo,
   };
 };
-

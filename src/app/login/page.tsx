@@ -57,7 +57,7 @@ export default function LoginPage() {
       )}>
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <div className="flex size-24 items-center justify-center rounded-lg bg-background">
+            <div className="flex size-24 items-center justify-center rounded-lg">
               {logo}
             </div>
           </div>
