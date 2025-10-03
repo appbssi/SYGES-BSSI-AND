@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,9 +19,11 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState(false);
 
   const handleLogin = () => {
     setIsLoading(true);
+    setLoginError(false);
     const result = login(username, password);
     if (result.success) {
       router.replace("/");
@@ -30,13 +33,27 @@ export default function LoginPage() {
         title: "Erreur de connexion",
         description: result.message,
       });
+      setLoginError(true);
       setIsLoading(false);
     }
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUsername(e.target.value);
+      if (loginError) setLoginError(false);
+  }
+  
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPassword(e.target.value);
+      if (loginError) setLoginError(false);
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-sm bg-black text-primary-foreground shadow-[0_0_15px_hsl(var(--primary))]">
+      <Card className={cn(
+          "w-full max-w-sm bg-black text-primary-foreground transition-shadow duration-300",
+          loginError ? "shadow-[0_0_15px_#4285F4]" : "shadow-[0_0_15px_hsl(var(--primary))]"
+      )}>
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
             <div className="flex size-24 items-center justify-center rounded-lg bg-background">
@@ -57,7 +74,7 @@ export default function LoginPage() {
                 type="text"
                 placeholder="login"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 disabled={isLoading}
               />
             </div>
@@ -68,7 +85,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="********"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 disabled={isLoading}
               />
             </div>
